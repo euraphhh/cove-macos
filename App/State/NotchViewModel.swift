@@ -16,6 +16,10 @@ struct IslandAlert: Equatable {
 @Observable
 final class NotchViewModel {
     var state: NotchState = .closed
+    /// Horizontal offset for swipe feedback; springs back to 0.
+    var nudgeOffset: CGFloat = 0
+    /// Finger is down on the island (press feedback).
+    var isPressed = false
     /// Debug only: keep the current state regardless of the cursor.
     var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)
@@ -47,6 +51,11 @@ final class NotchViewModel {
     func update(_ alert: IslandAlert) {
         guard self.alert != nil else { return }
         self.alert = alert
+    }
+
+    func nudge(_ direction: CGFloat) {
+        nudgeOffset = direction * 14
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in self?.nudgeOffset = 0 }
     }
 
     func show(_ alert: IslandAlert, for seconds: Double = 2.5) {

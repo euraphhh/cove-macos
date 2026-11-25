@@ -15,6 +15,7 @@ struct NotchApp {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NotchPanel?
     private var hover: HoverTracker?
+    private var swipe: SwipeHandler?
     private let viewModel = NotchViewModel()
     private let media = MediaModule()
     private let shelf = ShelfModule()
@@ -32,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
 
         hover = HoverTracker(panel: panel, viewModel: viewModel)
+        swipe = SwipeHandler(panel: panel, viewModel: viewModel, media: media)
         media.start()
         calendar.onStart = { [viewModel] meeting in
             viewModel.show(IslandAlert(icon: "calendar", iconColor: meeting.color, text: "Now", textColor: meeting.color), for: 4)

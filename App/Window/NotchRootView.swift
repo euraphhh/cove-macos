@@ -89,9 +89,9 @@ struct NotchRootView: View {
             }
             .frame(width: size.width + ear * 2, height: size.height)
             .contentShape(Rectangle())
-            .onTapGesture {
-                if viewModel.state == .peek { viewModel.state = .expanded }
-            }
+            .scaleEffect(viewModel.isPressed ? 0.95 : 1, anchor: .top)
+            .offset(x: viewModel.nudgeOffset)
+            .gesture(pressGesture, including: expanded ? .subviews : .all)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -108,6 +108,18 @@ struct NotchRootView: View {
         .animation(Self.spring, value: viewModel.alert)
         .animation(Self.spring, value: viewModel.hasLiveActivity)
         .animation(Self.spring, value: viewModel.expandedSize)
+        .animation(.spring(response: 0.22, dampingFraction: 0.6), value: viewModel.isPressed)
+        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: viewModel.nudgeOffset)
+    }
+
+    /// Squish while pressed, expand on release (like pressing the iPhone island).
+    private var pressGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { _ in if !viewModel.isPressed { viewModel.isPressed = true } }
+            .onEnded { _ in
+                viewModel.isPressed = false
+                if viewModel.state != .expanded { viewModel.state = .expanded }
+            }
     }
 
     private func sync() {
