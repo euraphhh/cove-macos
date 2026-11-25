@@ -41,6 +41,10 @@ private struct ShelfItemView: View {
     var body: some View {
         VStack(spacing: 4) {
             thumbnail.frame(width: 40, height: 40)
+                .opacity(shelf.working.contains(item.id) ? 0.35 : 1)
+                .overlay {
+                    if shelf.working.contains(item.id) { ProgressView().controlSize(.small) }
+                }
             Text(item.title)
                 .font(.system(size: 9)).foregroundStyle(.white)
                 .lineLimit(1).truncationMode(.middle)
@@ -77,6 +81,10 @@ private struct ShelfItemView: View {
     }
 
     @ViewBuilder private var menu: some View {
+        ForEach(ShelfActions.available(for: item)) { action in
+            Button { shelf.perform(action, on: item) } label: { Label(action.title, systemImage: action.symbol) }
+        }
+        Divider()
         switch item.kind {
         case .file(let url), .stored(let url):
             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }

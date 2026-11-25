@@ -50,6 +50,10 @@ final class ShelfModule: NotchModule {
     private(set) var items: [ShelfItem] = []
     var isTargeted = false
     var isAvailable: Bool { true }
+    /// Items an action is still working on (shows a spinner).
+    private(set) var working: Set<UUID> = []
+    /// Short feedback for the island after an action: SF Symbol name and a few words.
+    @ObservationIgnored var onFeedback: ((String, String) -> Void)?
 
     /// Everything the island accepts as a drop.
     static let acceptedTypes: [UTType] = [.fileURL, .url, .image, .plainText]
@@ -100,6 +104,54 @@ final class ShelfModule: NotchModule {
         guard !items.contains(where: { $0.kind == kind }) else { return }
         items.append(ShelfItem(kind: kind))
         save()
+    }
+
+    // MARK: Actions
+
+    func perform(_ action: ShelfAction, on item: ShelfItem) {
+        if action == .airDrop { share(item); return }
+        guard let url = item.fileURL, !working.contains(item.id) else { return }
+        working.insert(item.id)
+        let directory = self.directory
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let outcome = Result { try ShelfActions.run(action, on: url, in: directory) }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.working.remove(item.id)
+                self.finish(outcome)
+            }
+        }
+    }
+
+    private func finish(_ outcome: Result<ShelfActionResult, Error>) {
+        switch outcome {
+        case .success(.file(let url)):
+            append(.stored(url))
+            onFeedback?("checkmark.circle.fill", "Done")
+        case .success(.text(let text)):
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+            addText(text)
+            onFeedback?("doc.on.clipboard", "Copied")
+        case .success(.nothing):
+            onFeedback?("text.viewfinder", "None")
+        case .failure(let error):
+            Log.app.error("Shelf action failed: \(error.localizedDescription)")
+            onFeedback?("exclamationmark.triangle.fill", "Failed")
+        }
+    }
+
+    private func share(_ item: ShelfItem) {
+        let payload: Any
+        switch item.kind {
+        case .file(let url), .stored(let url), .link(let url): payload = url
+        case .text(let text): payload = text
+        }
+        guard let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: [payload]) else {
+            onFeedback?("exclamationmark.triangle.fill", "Failed")
+            return
+        }
+        service.perform(withItems: [payload])
     }
 
     // MARK: Removing

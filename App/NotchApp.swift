@@ -46,6 +46,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.reposition()
         panel.orderFrontRegardless()
 
+        shelf.onFeedback = { [viewModel] symbol, text in
+            viewModel.show(IslandAlert(icon: symbol, iconColor: .white, text: text))
+        }
         hover = HoverTracker(panel: panel, viewModel: viewModel)
         swipe = SwipeHandler(panel: panel, viewModel: viewModel, media: media)
         media.start()
