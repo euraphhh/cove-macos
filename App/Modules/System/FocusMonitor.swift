@@ -17,7 +17,23 @@ final class FocusMonitor {
     }
 
     func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.poll() }
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.configure()
+        }
+        configure()
+    }
+
+    /// The timer only exists while the feature is on, so it costs nothing otherwise.
+    private func configure() {
+        if Prefs.on(Prefs.focus) {
+            guard timer == nil else { return }
+            timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.poll() }
+        } else if timer != nil {
+            timer?.invalidate()
+            timer = nil
+            primed = false
+            current = nil
+        }
     }
 
     private func poll() {

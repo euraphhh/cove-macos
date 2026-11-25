@@ -18,36 +18,49 @@ Distribuição gratuita via GitHub Releases, **sem conta paga da Apple** (app n�
 ## Arquitetura
 ```
 App/
-  NotchApp.swift            # @main, LSUIElement (sem Dock), AppDelegate
+  NotchApp.swift            # @main, LSUIElement (sem Dock), AppDelegate (cria e conecta os módulos)
   Window/
     NotchPanel.swift        # NSPanel borderless, nonactivating, nível acima da menu bar
+    NotchRootView.swift     # forma do notch, animações, compacto/expandido/bolha
     NotchGeometry.swift     # detecta notch via NSScreen.safeAreaInsets / auxiliaryTopLeft/RightArea
-    HoverTracker.swift      # tracking area sobre o notch -> estados
+    HoverTracker.swift      # monitores de mouse -> estados (polling só enquanto o botão está pressionado)
+    SwipeHandler.swift      # gesto de dois dedos (próxima/anterior)
   State/
-    NotchViewModel.swift    # estados: closed / peek / expanded; @Observable
-  Modules/                  # cada feature é um módulo isolado com protocolo comum
-    NotchModule.swift       # protocol: id, compactView, expandedView, isAvailable
-    Media/                  # agora tocando
-    Shelf/                  # bandeja de arquivos (drag & drop)
-    System/                 # bateria, volume, brilho (HUD)
-  Settings/                 # SettingsView + UserDefaults/@AppStorage
-  Support/                  # extensões, logging (os.Logger)
+    NotchViewModel.swift    # estados: closed / peek / expanded, alertas; @Observable
+  Modules/
+    NotchModule.swift       # protocol base: id, compactView, expandedView, isAvailable
+    ActivityRegistry.swift  # Activity, ActivityEntry, ActivityProviding, ActivityRegistry
+    Media/                  # agora tocando (AppleScript + notificações do Spotify/Music)
+    Timer/  Calendar/  Downloads/   # live activities
+    Shelf/                  # bandeja (arquivos, imagens, links, texto), persiste em Application Support
+    Home/                   # tela inicial quando nada está tocando
+    System/                 # monitores: bateria, volume/HUD, bluetooth, rede, Focus, privacidade, screenshots...
+  Settings/                 # SettingsView, Prefs (UserDefaults/@AppStorage), onboarding, menu bar
+  Support/                  # Updater (Sparkle), FolderWatcher, Feedback, Log (os.Logger), DebugHooks
+Tests/CoveTests/            # XCTest da lógica pura (`swift test`)
 ```
 
+### Como adicionar uma live activity
+1. O módulo conforma a `ActivityProviding` e devolve um `ActivityEntry` (`isLive`, `leading`, `trailing`, `bubble`, `expanded`, `wide`, `expandedHeight`).
+2. Criar a constante em `Activity` (a prioridade define quem ocupa a ilha) e registrar o módulo em `AppDelegate`.
+3. `NotchRootView` não precisa mudar. Chaves de preferência vão em `Prefs` e a UI em `SettingsView`.
+
 Regras:
-- Janela: `NSPanel` com `.borderless`, `.nonactivatingPanel`, `level = .mainMenu + 1` (ou `.statusBar`), `collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]`, fundo transparente, `hasShadow = false`.
+- Janela: `NSPanel` com `.borderless`, `.nonactivatingPanel`, `level = .mainMenu + 1`, `collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]`, fundo transparente, `hasShadow = false`.
 - Reposicionar ao mudar telas (`NSApplication.didChangeScreenParametersNotification`).
-- O panel fica sempre do tamanho do estado expandido; o conteúdo anima por dentro. Cliques fora da forma visível precisam passar para trás (`ignoresMouseEvents` dinâmico conforme hover).
+- O panel fica sempre do tamanho do estado expandido; o conteúdo anima por dentro. Cliques fora da forma visível passam para trás (`ignoresMouseEvents` dinâmico conforme hover).
 - Animações SwiftUI com `.spring`; forma do notch = shape customizada com cantos inferiores arredondados.
 - Módulos não conhecem a janela; só expõem views e estado.
+- **Nada de polling fixo.** Preferir eventos: notificações (distribuídas/NSWorkspace), listeners do Core Audio/CMIO, `FolderWatcher`. Quando um timer for inevitável (progresso, contagem), ele só existe enquanto há algo ativo ou a feature está ligada.
+- AppleScript sempre fora da main thread (fila serial do `MediaModule`).
+- Features que tocam locais protegidos (Downloads, banco do Focus) só abrem o recurso depois que o usuário liga o toggle.
 
-## MVP (ordem)
-1. Panel no notch, preto, encaixado no notch físico, com hover -> expande / sai -> fecha.
-2. Módulo Media via **AppleScript** (Spotify e Music): título, artista, artwork, play/pause/next.
-   - MediaRemote (framework privado) fica para depois. Desde o macOS 15.4 o acesso direto está bloqueado; estudar o `mediaremote-adapter`. Tratar como frágil, sempre atrás de feature flag.
-3. Módulo Shelf: arrastar arquivo até o notch -> guarda temporariamente -> arrastar de volta para fora.
-4. Módulo System: HUD de volume/brilho/bateria.
-5. Settings + launch at login (`SMAppService.mainApp`).
+## Estado atual
+Já implementado: panel no notch com hover/peek/expand, mídia (Spotify e Music via AppleScript, scrub, saída de áudio), timer, próxima reunião, downloads, alertas (carregador, bateria baixa, Low Power, AirPods, desbloqueio, online/offline, Focus, screenshots), HUD de volume/brilho (opt-in), Shelf, indicador de câmera/mic, bolha de segunda atividade, gestos, fallback sem notch, onboarding, Sparkle e distribuição via Homebrew.
+
+Ideias para depois (ver conversa de planejamento): Shelf com ações (OCR, converter, AirDrop), letra sincronizada (LRCLIB, opt-in), nome do app que usa o mic (Core Audio process objects, macOS 14.2+), Pomodoro, atalho global, atalhos configuráveis na Home, histórico da área de transferência, perfis por app em foco.
+
+MediaRemote (framework privado) segue para depois: desde o macOS 15.4 o acesso direto está bloqueado; estudar o `mediaremote-adapter`. Tratar como frágil, sempre atrás de feature flag.
 
 ## Fora de escopo na v1
 - Notificações de outros apps (não existe API pública).
@@ -73,6 +86,7 @@ Regras:
 - Sem force unwrap fora de inicialização óbvia.
 - Toda API privada isolada num único arquivo por feature, com fallback.
 - Testar em: notch MBP 14", Air 13", monitor externo, troca de Spaces, app em tela cheia.
+- Lógica pura ganha teste em `Tests/CoveTests` (o CI roda `swift build` e `swift test`).
 
 ## Referências
 - boring.notch (open-source, SwiftUI): ver como resolve janela/notch/mídia.

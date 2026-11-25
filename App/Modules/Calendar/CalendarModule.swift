@@ -106,7 +106,11 @@ final class CalendarModule: NotchModule {
         options: .caseInsensitive)
 
     private static func joinURL(in event: EKEvent) -> URL? {
-        let text = [event.url?.absoluteString, event.location, event.notes].compactMap { $0 }.joined(separator: " ")
+        joinURL(in: [event.url?.absoluteString, event.location, event.notes].compactMap { $0 }.joined(separator: " "))
+    }
+
+    /// First video-call link (Meet, Zoom, Teams, Webex) found in free text.
+    static func joinURL(in text: String) -> URL? {
         guard let regex = joinPattern,
               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
               let range = Range(match.range, in: text) else { return nil }
@@ -122,6 +126,34 @@ final class CalendarModule: NotchModule {
 
     var compactView: some View { EmptyView() }
     var expandedView: some View { MeetingExpandedView(calendar: self) }
+}
+
+extension CalendarModule: ActivityProviding {
+    var activityEntry: ActivityEntry {
+        ActivityEntry(
+            activity: .meeting, wide: true,
+            isLive: { self.isAvailable && self.next != nil },
+            leading: {
+                AnyView(Image(systemName: "calendar").font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(self.next?.color ?? .blue))
+            },
+            trailing: { AnyView(MeetingCompactTrailing(calendar: self)) },
+            bubble: { _ in
+                AnyView(Image(systemName: "calendar").font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(self.next?.color ?? .blue))
+            },
+            expanded: { AnyView(self.expandedView) })
+    }
+}
+
+struct MeetingCompactTrailing: View {
+    let calendar: CalendarModule
+    var body: some View {
+        if let meeting = calendar.next {
+            MeetingCountdownText(meeting: meeting, font: .system(size: 13, weight: .semibold))
+                .lineLimit(1).minimumScaleFactor(0.7)
+        }
+    }
 }
 
 struct MeetingCountdownText: View {

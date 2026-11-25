@@ -10,13 +10,27 @@ final class HoverTracker {
     init(panel: NotchPanel, viewModel: NotchViewModel) {
         self.panel = panel
         self.viewModel = viewModel
-        let handler: (NSEvent) -> Void = { [weak self] _ in self?.update() }
-        if let g = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged], handler: handler) { monitors.append(g) }
-        if let l = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged], handler: { e in handler(e); return e }) { monitors.append(l) }
-        // Drag sessions from other apps don't reliably deliver mouse events to monitors,
-        // so poll the cursor while a mouse button is held.
-        dragTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            if NSEvent.pressedMouseButtons != 0 { self?.update() }
+        let handler: (NSEvent) -> Void = { [weak self] event in
+            if event.type == .leftMouseDown { self?.startDragPolling() }
+            else { self?.update() }
+        }
+        let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .leftMouseDown]
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler) { monitors.append(g) }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { e in handler(e); return e }) { monitors.append(l) }
+    }
+
+    /// Drag sessions from other apps don't reliably deliver mouse events to monitors, so poll the
+    /// cursor while a mouse button is held. The timer stops itself on release (no idle wakeups).
+    private func startDragPolling() {
+        guard dragTimer == nil else { return }
+        dragTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
+            guard NSEvent.pressedMouseButtons != 0 else {
+                timer.invalidate()
+                self?.dragTimer = nil
+                self?.update()
+                return
+            }
+            self?.update()
         }
     }
 
