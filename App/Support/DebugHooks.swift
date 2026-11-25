@@ -6,7 +6,7 @@ import Foundation
 enum DebugHooks {
     static let name = Notification.Name("com.euraphhh.cove.debug")
 
-    static func install(viewModel: NotchViewModel, power: PowerMonitor?, calendar: CalendarModule) {
+    static func install(viewModel: NotchViewModel, power: PowerMonitor?, calendar: CalendarModule, timer: TimerModule) {
         guard UserDefaults.standard.bool(forKey: "debugHooks") else { return }
         DistributedNotificationCenter.default().addObserver(forName: name, object: nil, queue: .main) { note in
             switch note.object as? String {
@@ -21,6 +21,8 @@ enum DebugHooks {
                 calendar.set(Meeting(id: "debug-now", title: "Design review", start: .now,
                                      end: .now.addingTimeInterval(1800), color: .blue, joinURL: nil))
             case "noMeeting": calendar.set(nil)
+            case "timer": timer.start(minutes: 5)
+            case "noTimer": timer.cancel()
             case "expand": viewModel.pinned = true; viewModel.state = .expanded
             case "peek": viewModel.pinned = true; viewModel.state = .peek
             case "close": viewModel.pinned = false; viewModel.state = .closed

@@ -25,6 +25,17 @@ struct NotchShape: Shape {
     }
 }
 
+private struct BubbleSplit: ViewModifier {
+    var active: Bool
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(active ? 0.3 : 1)
+            .offset(x: active ? -28 : 0)
+            .blur(radius: active ? 4 : 0)
+            .opacity(active ? 0 : 1)
+    }
+}
+
 /// Blur + scale + fade, the way Dynamic Island content morphs in and out.
 private struct BlurFade: ViewModifier {
     var active: Bool
@@ -37,6 +48,11 @@ private struct BlurFade: ViewModifier {
 }
 
 extension AnyTransition {
+    /// Bubble splits off the island: grows from its left edge while sliding out.
+    static var bubble: AnyTransition {
+        .modifier(active: BubbleSplit(active: true), identity: BubbleSplit(active: false))
+    }
+
     /// Content arrives just after the shape grows, and leaves immediately.
     static var island: AnyTransition {
         .asymmetric(
@@ -56,6 +72,17 @@ struct NotchRootView: View {
     let calendar: CalendarModule
 
     private var expanded: Bool { viewModel.state == .expanded }
+
+    private var activities: [Activity] {
+        var list: [Activity] = []
+        if timer.isAvailable { list.append(.timer) }
+        if calendar.isAvailable, calendar.next != nil { list.append(.meeting) }
+        if media.nowPlaying?.isPlaying == true { list.append(.media) }
+        return list
+    }
+    private var primary: Activity? { activities.first }
+    /// What the expanded island shows: the tapped bubble, else the primary activity.
+    private var expandedActivity: Activity? { viewModel.focused ?? primary }
     private var showShelf: Bool { !shelf.items.isEmpty || shelf.isTargeted }
 
     /// Opening overshoots a little; closing is quicker and settles without bounce.
@@ -92,6 +119,13 @@ struct NotchRootView: View {
             .scaleEffect(viewModel.isPressed ? 0.95 : 1, anchor: .top)
             .offset(x: viewModel.nudgeOffset)
             .gesture(pressGesture, including: expanded ? .subviews : .all)
+            .overlay(alignment: .topTrailing) {
+                if let secondary = viewModel.secondary, !expanded {
+                    bubble(for: secondary)
+                        .offset(x: viewModel.bubbleSize + NotchViewModel.bubbleGap)
+                        .transition(.bubble)
+                }
+            }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -104,9 +138,14 @@ struct NotchRootView: View {
         .onChange(of: calendar.next) { sync() }
         .onReceive(Timer.publish(every: 15, on: .main, in: .common).autoconnect()) { _ in sync() }
         .onChange(of: showShelf) { sync() }
+        .onChange(of: viewModel.focused) { sync() }
+        .onChange(of: viewModel.state) { _, state in
+            if state == .closed { viewModel.focused = nil }
+        }
         .animation(expanded ? Self.openSpring : Self.closeSpring, value: viewModel.state)
         .animation(Self.spring, value: viewModel.alert)
         .animation(Self.spring, value: viewModel.hasLiveActivity)
+        .animation(Self.spring, value: viewModel.secondary)
         .animation(Self.spring, value: viewModel.expandedSize)
         .animation(.spring(response: 0.22, dampingFraction: 0.6), value: viewModel.isPressed)
         .animation(.spring(response: 0.3, dampingFraction: 0.5), value: viewModel.nudgeOffset)
@@ -123,11 +162,14 @@ struct NotchRootView: View {
     }
 
     private func sync() {
-        viewModel.wideLiveActivity = timer.isAvailable || calendar.isAvailable
-        viewModel.hasLiveActivity = viewModel.wideLiveActivity || media.nowPlaying?.isPlaying == true
+        let list = activities
+        viewModel.wideLiveActivity = list.first == .timer || list.first == .meeting
+        viewModel.hasLiveActivity = !list.isEmpty
+        viewModel.secondary = list.count > 1 ? list[1] : nil
+        if let f = viewModel.focused, !list.contains(f) { viewModel.focused = nil }
         // Expanded island hugs its content.
         let top = viewModel.notchSize.height
-        let compactCard = timer.isAvailable || calendar.isAvailable || media.nowPlaying == nil
+        let compactCard = expandedActivity == .timer || expandedActivity == .meeting || media.nowPlaying == nil
         let contentHeight: CGFloat = compactCard ? 58 : 138
         let width: CGFloat = showShelf ? 640 : 440
         viewModel.expandedSize = CGSize(width: width, height: top + contentHeight + 22)
@@ -136,9 +178,11 @@ struct NotchRootView: View {
     private var expandedContent: some View {
         HStack(spacing: 18) {
             Group {
-                if timer.isAvailable { timer.expandedView }
-                else if calendar.isAvailable { calendar.expandedView }
-                else { media.expandedView }
+                switch expandedActivity {
+                case .timer: timer.expandedView
+                case .meeting: calendar.expandedView
+                case .media, nil: media.expandedView
+                }
             }
             .frame(maxWidth: .infinity)
             if showShelf {
@@ -169,16 +213,48 @@ struct NotchRootView: View {
         }
     }
 
+    /// Minimal presentation of the second activity, in a detached circle (like iOS).
+    private func bubble(for activity: Activity) -> some View {
+        let size = viewModel.bubbleSize
+        return ZStack {
+            Circle().fill(.black)
+            switch activity {
+            case .timer:
+                TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
+                    let left = timer.duration > 0 ? timer.remaining(at: ctx.date) / timer.duration : 0
+                    ZStack {
+                        Circle().stroke(.orange.opacity(0.25), lineWidth: 2.5)
+                        Circle().trim(from: 0, to: left).stroke(.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                        Image(systemName: "timer").font(.system(size: 9, weight: .bold)).foregroundStyle(.orange)
+                    }
+                    .padding(7)
+                }
+            case .meeting:
+                Image(systemName: "calendar").font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(calendar.next?.color ?? .blue)
+            case .media:
+                Artwork(image: media.artwork, size: size - 12, radius: (size - 12) / 2)
+            }
+        }
+        .frame(width: size, height: size)
+        .contentShape(Circle())
+        .onTapGesture {
+            viewModel.focused = activity
+            viewModel.state = .expanded
+        }
+    }
+
     private var compactContent: some View {
         Group {
-            if timer.isAvailable {
+            if primary == .timer {
                 wings {
                     Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange)
                 } trailing: {
                     TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
                         .lineLimit(1).minimumScaleFactor(0.7)
                 }
-            } else if calendar.isAvailable, let meeting = calendar.next {
+            } else if primary == .meeting, let meeting = calendar.next {
                 wings {
                     Image(systemName: "calendar").font(.system(size: 14, weight: .semibold)).foregroundStyle(meeting.color)
                 } trailing: {

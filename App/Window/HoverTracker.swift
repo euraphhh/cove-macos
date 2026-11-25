@@ -33,8 +33,10 @@ final class HoverTracker {
         } else {
             // Larger catch area while dragging so files are easy to drop.
             let pad: CGFloat = NSEvent.pressedMouseButtons != 0 ? 60 : 10
+            // The detached bubble (second activity) extends the area to the right.
+            let bubble = viewModel.secondary != nil ? NotchViewModel.bubbleGap + viewModel.bubbleSize + 6 : 0
             active = NSRect(x: frame.midX - notch.width / 2 - pad, y: frame.maxY - notch.height - pad / 2,
-                            width: notch.width + pad * 2, height: notch.height + pad / 2)
+                            width: notch.width + pad * 2 + bubble, height: notch.height + pad / 2)
         }
         let inside = active.contains(p)
         // Keep open while a button is held after leaving (dragging a file out of the shelf).

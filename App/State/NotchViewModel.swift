@@ -3,6 +3,12 @@ import Observation
 
 enum NotchState { case closed, peek, expanded }
 
+/// Ongoing live activities, in priority order (first one owns the island).
+enum Activity: Int, Comparable {
+    case timer, meeting, media
+    static func < (a: Activity, b: Activity) -> Bool { a.rawValue < b.rawValue }
+}
+
 /// Short-lived activity that takes over the compact island (charger, AirPods, ...).
 struct IslandAlert: Equatable {
     var icon: String
@@ -20,6 +26,13 @@ final class NotchViewModel {
     var nudgeOffset: CGFloat = 0
     /// Finger is down on the island (press feedback).
     var isPressed = false
+    /// Second activity, shown as a detached bubble beside the island.
+    var secondary: Activity?
+    /// Activity the user tapped to expand (bubble); nil means the primary one.
+    var focused: Activity?
+    static let bubbleGap: CGFloat = 6
+    var bubbleSize: CGFloat { notchSize.height }
+
     /// Debug only: keep the current state regardless of the cursor.
     var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)
