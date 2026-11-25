@@ -31,6 +31,12 @@ final class NotchViewModel {
     /// Slightly bigger island while hovering, before a click expands it.
     var peekSize: CGSize { CGSize(width: closedSize.width + 16, height: closedSize.height + 4) }
 
+    /// Replaces the visible alert's content without restarting its timer.
+    func update(_ alert: IslandAlert) {
+        guard self.alert != nil else { return }
+        self.alert = alert
+    }
+
     func show(_ alert: IslandAlert, for seconds: Double = 2.5) {
         alertTask?.cancel()
         self.alert = alert

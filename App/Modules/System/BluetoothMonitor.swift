@@ -26,13 +26,17 @@ final class BluetoothMonitor: NSObject {
         guard isAudio || name.localizedCaseInsensitiveContains("airpods") else { return }
 
         let icon = Self.icon(for: name)
-        // Battery shows up in system_profiler a moment after the connection.
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            let battery = BluetoothBattery.level(forDeviceNamed: name)
-            DispatchQueue.main.async {
-                let text = battery.map { "\($0)%" } ?? "On"
-                let color: Color = (battery ?? 100) <= 20 ? .red : .green
-                self?.viewModel.show(IslandAlert(icon: icon, iconColor: .white, text: text, textColor: color))
+        // Show right away, then fill in the battery once system_profiler reports it.
+        viewModel.show(IslandAlert(icon: icon, iconColor: .white, text: "", textColor: .green), for: 3.5)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            for attempt in 0..<6 {
+                if attempt > 0 { Thread.sleep(forTimeInterval: 0.5) }
+                guard let level = BluetoothBattery.level(forDeviceNamed: name) else { continue }
+                DispatchQueue.main.async {
+                    let color: Color = level <= 20 ? .red : .green
+                    self?.viewModel.update(IslandAlert(icon: icon, iconColor: .white, text: "\(level)%", textColor: color))
+                }
+                return
             }
         }
     }
