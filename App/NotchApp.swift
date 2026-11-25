@@ -17,10 +17,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hover: HoverTracker?
     private let viewModel = NotchViewModel()
     private let media = MediaModule()
+    private let shelf = ShelfModule()
     private var menuBar: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let panel = NotchPanel(viewModel: viewModel, media: media)
+        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf)
         self.panel = panel
         panel.reposition()
         panel.orderFrontRegardless()

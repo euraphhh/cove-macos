@@ -5,13 +5,19 @@ final class HoverTracker {
     private weak var panel: NotchPanel?
     private let viewModel: NotchViewModel
     private var monitors: [Any] = []
+    private var dragTimer: Timer?
 
     init(panel: NotchPanel, viewModel: NotchViewModel) {
         self.panel = panel
         self.viewModel = viewModel
         let handler: (NSEvent) -> Void = { [weak self] _ in self?.update() }
-        if let g = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: handler) { monitors.append(g) }
-        if let l = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved, handler: { e in handler(e); return e }) { monitors.append(l) }
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged], handler: handler) { monitors.append(g) }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged], handler: { e in handler(e); return e }) { monitors.append(l) }
+        // Drag sessions from other apps don't reliably deliver mouse events to monitors,
+        // so poll the cursor while a mouse button is held.
+        dragTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            if NSEvent.pressedMouseButtons != 0 { self?.update() }
+        }
     }
 
     private func update() {
@@ -24,10 +30,15 @@ final class HoverTracker {
         if viewModel.state == .expanded {
             active = frame
         } else {
-            active = NSRect(x: frame.midX - notch.width / 2 - 10, y: frame.maxY - notch.height - 4,
-                            width: notch.width + 20, height: notch.height + 4)
+            // Larger catch area while dragging so files are easy to drop.
+            let pad: CGFloat = NSEvent.pressedMouseButtons != 0 ? 60 : 10
+            active = NSRect(x: frame.midX - notch.width / 2 - pad, y: frame.maxY - notch.height - pad / 2,
+                            width: notch.width + pad * 2, height: notch.height + pad / 2)
         }
         let inside = active.contains(p)
+        // Keep open while a button is held after leaving (dragging a file out of the shelf).
+        let holding = NSEvent.pressedMouseButtons != 0 && viewModel.state == .expanded
+        if holding && !inside { return }
         panel.ignoresMouseEvents = !inside
         let target: NotchState = inside ? .expanded : .closed
         if viewModel.state != target { viewModel.state = target }

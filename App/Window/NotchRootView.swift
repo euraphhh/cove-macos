@@ -19,6 +19,7 @@ struct NotchShape: Shape {
 struct NotchRootView: View {
     let viewModel: NotchViewModel
     let media: MediaModule
+    let shelf: ShelfModule
 
     private var expanded: Bool { viewModel.state == .expanded }
 
@@ -29,7 +30,11 @@ struct NotchRootView: View {
             ZStack(alignment: .top) {
                 NotchShape(radius: expanded ? 28 : 10).fill(.black)
                 if expanded {
-                    media.expandedView
+                    HStack(spacing: 16) {
+                        media.expandedView.frame(maxWidth: .infinity)
+                        shelf.expandedView.frame(width: 200)
+                    }
+                        .padding(.bottom, 16)
                         .padding(.horizontal, 24)
                         .padding(.top, notch.height + 8)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -40,6 +45,9 @@ struct NotchRootView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onDrop(of: [.fileURL], isTargeted: Binding(get: { shelf.isTargeted }, set: { shelf.isTargeted = $0 })) {
+            shelf.handleDrop($0)
+        }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: expanded)
     }
 }
