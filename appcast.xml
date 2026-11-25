@@ -6,6 +6,15 @@
     <description>Cove updates</description>
     <language>en</language>
     <item>
+      <title>Version 0.6.0</title>
+      <pubDate>Wed, 25 Nov 2026 04:16:51 +0000</pubDate>
+      <sparkle:version>0.6.0</sparkle:version>
+      <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/euraphhh/cove-macos/releases/tag/v0.6.0</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/euraphhh/cove-macos/releases/download/v0.6.0/Cove.zip" type="application/octet-stream" sparkle:edSignature="8eK2vyyQXQLZ5bWj9g5bQAFWKVfA0IzngxEJvAu7zcoWarfS5YuiDqjrMg12+StkSMS2eqw+8oujOXSnl9tSDQ==" length="1459772" />
+    </item>
+    <item>
       <title>Version 0.5.0</title>
       <pubDate>Wed, 25 Nov 2026 04:07:48 +0000</pubDate>
       <sparkle:version>0.5.0</sparkle:version>
