@@ -4,7 +4,15 @@ import PackageDescription
 let package = Package(
     name: "Cove",
     platforms: [.macOS(.v14)],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
+    ],
     targets: [
-        .executableTarget(name: "Cove", path: "App")
+        .executableTarget(
+            name: "Cove",
+            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
+            path: "App",
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
+        )
     ]
 )

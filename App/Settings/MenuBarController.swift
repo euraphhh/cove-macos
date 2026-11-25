@@ -42,6 +42,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(launchItem)
         menu.addItem(hudItem)
         menu.addItem(settings)
+        let updates = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updates.target = self
+        menu.addItem(updates)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Cove", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -59,6 +62,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func startTimer(_ sender: NSMenuItem) { timer.start(minutes: Double(sender.tag)) }
     @objc private func cancelTimer() { timer.cancel() }
+
+    @objc private func checkForUpdates() {
+        NSApp.activate(ignoringOtherApps: true)
+        Updater.shared.checkForUpdates()
+    }
 
     @objc private func toggleCalendar() { calendar.setEnabled(!calendar.isEnabled) }
 

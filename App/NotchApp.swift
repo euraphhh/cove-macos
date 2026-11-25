@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timer.onFinish = { [viewModel] in
             viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: "Done", textColor: .orange), for: 4)
         }
+        _ = Updater.shared
         menuBar = MenuBarController(timer: timer, calendar: calendar)
         power = PowerMonitor(viewModel: viewModel)
         power?.start()

@@ -8,6 +8,12 @@ Dynamic Island-style app for the MacBook notch. Free, open source, Apple Silicon
 ```
 Quit from the menu bar icon (or `pkill Cove`).
 
+## Install with Homebrew
+```bash
+brew install --cask euraphhh/tap/cove
+```
+Updates arrive automatically inside the app (Sparkle), or via `brew upgrade --cask cove`.
+
 ## Install from Releases
 The app is **not notarized**. After downloading, run:
 ```bash
