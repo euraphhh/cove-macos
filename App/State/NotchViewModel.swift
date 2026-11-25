@@ -21,6 +21,8 @@ final class NotchViewModel {
     var hasLiveActivity = false
     /// Live activity needs room for text on the right wing (timer countdown).
     var wideLiveActivity = false
+    /// Size of the expanded island, driven by what it currently shows.
+    var expandedSize = CGSize(width: 440, height: 180)
     private(set) var alert: IslandAlert?
     private var alertTask: Task<Void, Never>?
 

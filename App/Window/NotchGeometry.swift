@@ -1,7 +1,8 @@
 import AppKit
 
 struct NotchGeometry {
-    static let expandedSize = CGSize(width: 520, height: 180)
+    /// Panel size: big enough for the largest expanded layout plus the top "ears".
+    static let expandedSize = CGSize(width: 680, height: 240)
 
     /// Screen with a notch if any, otherwise the main screen (floating island fallback).
     static var targetScreen: NSScreen? {

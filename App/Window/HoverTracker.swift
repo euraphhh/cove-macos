@@ -28,7 +28,8 @@ final class HoverTracker {
         // Active area: notch rect when closed, the visible expanded shape when open.
         let active: NSRect
         if viewModel.state == .expanded {
-            active = frame
+            let e = viewModel.expandedSize
+            active = NSRect(x: frame.midX - e.width / 2, y: frame.maxY - e.height, width: e.width, height: e.height)
         } else {
             // Larger catch area while dragging so files are easy to drop.
             let pad: CGFloat = NSEvent.pressedMouseButtons != 0 ? 60 : 10

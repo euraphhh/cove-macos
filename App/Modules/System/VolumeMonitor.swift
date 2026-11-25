@@ -46,7 +46,7 @@ final class VolumeMonitor {
         guard var volume = readVolume() else { return false }
         if isMuted { _ = setMute(false) }
         volume = min(max(volume + delta, 0), 1)
-        var size = UInt32(MemoryLayout<Float32>.size)
+        let size = UInt32(MemoryLayout<Float32>.size)
         var a = Self.address(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, scope: kAudioDevicePropertyScopeOutput)
         let ok = AudioObjectSetPropertyData(device, &a, 0, nil, size, &volume) == noErr
         if ok { showVolume() } // also covers hitting 0%/100% where no change fires
