@@ -1,34 +1,58 @@
-# Cove
+<p align="center">
+  <img src="Resources/icon.png" width="128" alt="Cove icon">
+</p>
 
-Dynamic Island-style app for the MacBook notch. Free, open source, Apple Silicon, macOS 14+.
+<h1 align="center">Cove</h1>
+<p align="center">A Dynamic Island for your MacBook's notch. Free and open source.</p>
 
-## Build & run
-```bash
-./scripts/install.sh   # builds, installs to /Applications and launches
-```
-Quit from the menu bar icon (or `pkill Cove`).
+<p align="center">
+  <img src="docs/alerts.gif" width="580" alt="Cove showing charging, unlock, low battery and timer in the notch">
+</p>
 
-## Install with Homebrew
+## What it does
+- **Music**: compact artwork + equalizer around the notch; an iPhone-style player with scrubbing, audio output picker and volume when you click.
+- **Live activities**: timer, next meeting with a Join button, downloads. A second activity shows as a bubble.
+- **Alerts**: charger, low battery, Low Power Mode, AirPods with battery, unlock, online/offline, Focus, screenshots.
+- **HUD**: optional replacement for the macOS volume/brightness overlay.
+- **Shelf**: drop files on the notch to hold them, drag them back out later.
+- **Gestures**: swipe two fingers on the island to skip tracks; press to expand.
+- **Camera/mic indicator**: green or orange dot while an app is using them.
+- Works on Macs without a notch too: the island becomes a pill in the menu bar.
+
+Every feature can be turned off in Settings.
+
+## Install
 ```bash
 brew install --cask euraphhh/tap/cove
 ```
-Updates arrive automatically inside the app (Sparkle), or via `brew upgrade --cask cove`.
+If Homebrew complains about an untrusted tap, run `brew trust euraphhh/tap` first.
 
-## Install from Releases
-The app is **not notarized**. After downloading, run:
+Or download `Cove.zip` from [Releases](https://github.com/euraphhh/cove-macos/releases/latest), move `Cove.app` to `/Applications` and run:
 ```bash
 xattr -cr /Applications/Cove.app
 ```
-or open it via System Settings > Privacy & Security > "Open Anyway".
+Cove is not notarized by Apple, so macOS blocks it until the quarantine flag is removed.
 
-## Status
-- [x] Notch panel with hover expand/collapse
-- [x] Media module (Spotify / Music via AppleScript)
-- [x] Shelf (drag files to the notch and back out)
-- [x] Compact live activities (music, timer) with island-style animations
-- [x] Alerts: charger, headphones (with battery)
-- [x] Volume/brightness HUD (optional, needs Accessibility)
-- [x] Timer (menu bar > Timer)
-- [x] Upcoming meeting with Join button (menu bar > Show Upcoming Meetings)
-- [x] Low battery alert
-- [x] Menu bar + Settings + launch at login
+Updates arrive inside the app (menu bar icon > **Check for Updates…**).
+
+**Requirements:** Apple Silicon Mac, macOS 14 Sonoma or later.
+
+## Permissions
+Cove only asks when you turn a feature on:
+| Feature | Permission |
+| --- | --- |
+| Music (Spotify / Apple Music) | Automation |
+| Headphones alert | Bluetooth |
+| Meetings | Calendar |
+| Volume/brightness HUD | Accessibility |
+| Downloads | Downloads folder |
+| Focus | Full Disk Access |
+
+## Build from source
+```bash
+./scripts/install.sh   # builds, installs to /Applications and launches
+```
+Optional: `./scripts/create-dev-cert.sh` once, so macOS keeps permissions across rebuilds.
+
+## License
+MIT
