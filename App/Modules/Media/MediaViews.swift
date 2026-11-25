@@ -63,7 +63,7 @@ struct MediaExpandedView: View {
                     .foregroundStyle(.white.opacity(scrubbing != nil ? 0.9 : 0.55))
                 }
                 ZStack {
-                    HStack(spacing: 26) {
+                    HStack(spacing: 44) {
                         TransportButton(icon: "backward.fill", size: 20) { media.send("previous track") }
                         TransportButton(icon: np.isPlaying ? "pause.fill" : "play.fill", size: 28) { media.send("playpause") }
                         TransportButton(icon: "forward.fill", size: 20) { media.send("next track") }
@@ -102,26 +102,33 @@ struct TransportButton: View {
                 .font(.system(size: size, weight: .semibold))
                 .contentTransition(.symbolEffect(.replace))
         }
-        .buttonStyle(CircleHighlightStyle(diameter: size * 1.9))
+        .buttonStyle(CircleHighlightStyle(diameter: size * 1.9, layout: CGSize(width: size + 20, height: size + 12)))
     }
 }
 
 /// iOS-style control: a translucent circle that fully covers the button on hover/press.
 struct CircleHighlightStyle: ButtonStyle {
     var diameter: CGFloat
+    /// Space the button takes in the layout; the circle may overflow it without growing the island.
+    var layout: CGSize? = nil
     func makeBody(configuration: Configuration) -> some View {
-        HighlightBody(configuration: configuration, diameter: diameter)
+        HighlightBody(configuration: configuration, diameter: diameter,
+                      layout: layout ?? CGSize(width: diameter, height: diameter))
     }
 
     private struct HighlightBody: View {
         let configuration: Configuration
         let diameter: CGFloat
+        let layout: CGSize
         @State private var hovering = false
         var body: some View {
             configuration.label
-                .frame(width: diameter, height: diameter)
-                .background(Circle().fill(.white.opacity(configuration.isPressed ? 0.24 : hovering ? 0.13 : 0)))
-                .contentShape(Circle())
+                .frame(width: layout.width, height: layout.height)
+                .contentShape(Rectangle())
+                .background(
+                    Circle().fill(.white.opacity(configuration.isPressed ? 0.24 : hovering ? 0.13 : 0))
+                        .frame(width: diameter, height: diameter)
+                )
                 .scaleEffect(configuration.isPressed ? 0.88 : 1)
                 .onHover { hovering = $0 }
                 .animation(.easeOut(duration: 0.15), value: hovering)
