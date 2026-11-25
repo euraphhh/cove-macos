@@ -6,7 +6,8 @@ VERSION="${VERSION:-0.1.0}"
 swift build -c release --arch arm64
 APP=build/Cove.app
 rm -rf "$APP" && mkdir -p "$APP/Contents/MacOS"
-cp .build/arm64-apple-macosx/release/Cove "$APP/Contents/MacOS/Cove"
+BIN="$(swift build -c release --arch arm64 --show-bin-path)/Cove"
+cp "$BIN" "$APP/Contents/MacOS/Cove"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
