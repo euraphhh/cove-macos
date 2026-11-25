@@ -77,6 +77,14 @@ final class MediaModule: NotchModule {
         refresh()
     }
 
+    func seek(to seconds: TimeInterval) {
+        guard let p = nowPlaying?.player else { return }
+        // AppleScript wants a dot decimal regardless of locale.
+        let value = String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), max(seconds, 0))
+        _ = run("tell application \"\(p.rawValue)\" to set player position to \(value)")
+        refresh()
+    }
+
     private func clear() {
         nowPlaying = nil
         artworkTrackID = nil

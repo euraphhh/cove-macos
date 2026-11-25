@@ -31,6 +31,8 @@ struct MediaCompactView: View {
 struct MediaExpandedView: View {
     let media: MediaModule
     @State private var showingRoutes = false
+    /// Fraction (0...1) while the user drags the scrubber; nil otherwise.
+    @State private var scrubbing: Double?
 
     var body: some View {
         if showingRoutes {
@@ -48,14 +50,17 @@ struct MediaExpandedView: View {
                     EqualizerView(isPlaying: np.isPlaying, color: media.tint)
                 }
                 TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-                    let elapsed = np.elapsed(at: ctx.date)
+                    let live = np.duration > 0 ? np.elapsed(at: ctx.date) / np.duration : 0
+                    let elapsed = (scrubbing ?? live) * np.duration
                     HStack(spacing: 8) {
                         Text(Self.time(elapsed)).frame(width: 36, alignment: .leading)
-                        LevelBar(value: np.duration > 0 ? elapsed / np.duration : 0, color: .white)
+                        ScrubBar(value: scrubbing ?? live, scrubbing: $scrubbing) { fraction in
+                            media.seek(to: fraction * np.duration)
+                        }
                         Text("-" + Self.time(max(np.duration - elapsed, 0))).frame(width: 40, alignment: .trailing)
                     }
                     .font(.system(size: 11, weight: .medium).monospacedDigit())
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.white.opacity(scrubbing != nil ? 0.9 : 0.55))
                 }
                 ZStack {
                     HStack(spacing: 44) {
@@ -175,5 +180,40 @@ struct RoutePicker: View {
             }
         }
         .onAppear { outputs = AudioOutputs.all(); current = AudioOutputs.currentID }
+    }
+}
+
+/// Progress bar you can drag or click to seek; thickens on hover like iOS.
+struct ScrubBar: View {
+    var value: Double
+    @Binding var scrubbing: Double?
+    var onCommit: (Double) -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        GeometryReader { geo in
+            let active = hovering || scrubbing != nil
+            let fraction = min(max(value, 0), 1)
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.2))
+                Capsule().fill(.white).frame(width: geo.size.width * fraction)
+            }
+            .frame(height: active ? 9 : 5)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { g in scrubbing = min(max(g.location.x / geo.size.width, 0), 1) }
+                    .onEnded { g in
+                        let f = min(max(g.location.x / geo.size.width, 0), 1)
+                        onCommit(f)
+                        // Hold the dragged value briefly so the bar doesn't jump back before the player catches up.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { scrubbing = nil }
+                    }
+            )
+            .onHover { hovering = $0 }
+            .animation(.spring(response: 0.25, dampingFraction: 0.8), value: active)
+        }
+        .frame(height: 16)
     }
 }
