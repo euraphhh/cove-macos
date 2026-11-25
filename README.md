@@ -7,7 +7,7 @@ Dynamic Island-style app for the MacBook notch. Free, open source, Apple Silicon
 ./scripts/bundle.sh
 open build/Cove.app
 ```
-Quit with `pkill Cove`.
+Quit from the menu bar icon (or `pkill Cove`).
 
 ## Install from Releases
 The app is **not notarized**. After downloading, run:
@@ -21,4 +21,4 @@ or open it via System Settings > Privacy & Security > "Open Anyway".
 - [x] Media module (Spotify / Music via AppleScript)
 - [ ] Shelf
 - [ ] System HUD
-- [ ] Settings + launch at login
+- [x] Menu bar + Settings + launch at login

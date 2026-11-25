@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hover: HoverTracker?
     private let viewModel = NotchViewModel()
     private let media = MediaModule()
+    private var menuBar: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let panel = NotchPanel(viewModel: viewModel, media: media)
@@ -26,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         hover = HoverTracker(panel: panel, viewModel: viewModel)
         media.start()
+        menuBar = MenuBarController()
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
