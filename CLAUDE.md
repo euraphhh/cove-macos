@@ -56,9 +56,9 @@ Regras:
 - Features que tocam locais protegidos (Downloads, banco do Focus) só abrem o recurso depois que o usuário liga o toggle.
 
 ## Estado atual
-Já implementado: panel no notch com hover/peek/expand, mídia (Spotify e Music via AppleScript, scrub, saída de áudio), timer, próxima reunião, downloads, alertas (carregador, bateria baixa, Low Power, AirPods, desbloqueio, online/offline, Focus, screenshots), HUD de volume/brilho (opt-in), Shelf, indicador de câmera/mic, bolha de segunda atividade, gestos, fallback sem notch, onboarding, Sparkle e distribuição via Homebrew.
+Já implementado: Shelf com ações (OCR, converter imagem, zip, AirDrop), panel no notch com hover/peek/expand, mídia (Spotify e Music via AppleScript, scrub, saída de áudio), timer, próxima reunião, downloads, alertas (carregador, bateria baixa, Low Power, AirPods, desbloqueio, online/offline, Focus, screenshots), HUD de volume/brilho (opt-in), Shelf, indicador de câmera/mic, bolha de segunda atividade, gestos, fallback sem notch, onboarding, Sparkle e distribuição via Homebrew.
 
-Ideias para depois (ver conversa de planejamento): Shelf com ações (OCR, converter, AirDrop), letra sincronizada (LRCLIB, opt-in), nome do app que usa o mic (Core Audio process objects, macOS 14.2+), Pomodoro, atalho global, atalhos configuráveis na Home, histórico da área de transferência, perfis por app em foco.
+Ideias para depois (ver conversa de planejamento): letra sincronizada (LRCLIB, opt-in), nome do app que usa o mic (Core Audio process objects, macOS 14.2+), Pomodoro, atalho global, atalhos configuráveis na Home, histórico da área de transferência, perfis por app em foco.
 
 MediaRemote (framework privado) segue para depois: desde o macOS 15.4 o acesso direto está bloqueado; estudar o `mediaremote-adapter`. Tratar como frágil, sempre atrás de feature flag.
 

@@ -14,7 +14,7 @@
 - **Live activities**: timer, next meeting with a Join button, downloads. A second activity shows as a bubble.
 - **Alerts**: charger, low battery, Low Power Mode, AirPods with battery, unlock, online/offline, Focus, screenshots.
 - **HUD**: optional replacement for the macOS volume/brightness overlay.
-- **Shelf**: drop files on the notch to hold them, drag them back out later.
+- **Shelf**: drop files, images, links or text on the notch to hold them, drag them back out later. Right-click an item to copy text from an image (OCR), convert to PNG/JPEG, zip it or AirDrop it.
 - **Gestures**: swipe two fingers on the island to skip tracks; press to expand.
 - **Camera/mic indicator**: green or orange dot while an app is using them.
 - Works on Macs without a notch too: the island becomes a pill in the menu bar.
