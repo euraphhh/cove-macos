@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let media = MediaModule()
     private let shelf = ShelfModule()
     private var menuBar: MenuBarController?
+    private var power: PowerMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf)
@@ -29,6 +30,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hover = HoverTracker(panel: panel, viewModel: viewModel)
         media.start()
         menuBar = MenuBarController()
+        power = PowerMonitor(viewModel: viewModel)
+        power?.start()
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,

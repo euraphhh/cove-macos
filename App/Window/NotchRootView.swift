@@ -45,17 +45,27 @@ struct NotchRootView: View {
     static let spring = Animation.spring(response: 0.42, dampingFraction: 0.72)
 
     var body: some View {
-        let size = expanded ? NotchGeometry.expandedSize : viewModel.closedSize
+        let size: CGSize = switch viewModel.state {
+        case .expanded: NotchGeometry.expandedSize
+        case .peek: viewModel.peekSize
+        case .closed: viewModel.closedSize
+        }
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
                 NotchShape(radius: expanded ? 32 : viewModel.notchSize.height / 2.6).fill(.black)
                 if expanded {
                     expandedContent.transition(.island)
+                } else if let alert = viewModel.alert {
+                    alertContent(alert).transition(.island)
                 } else if viewModel.hasLiveActivity {
                     compactContent.transition(.island)
                 }
             }
             .frame(width: size.width, height: size.height)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if viewModel.state == .peek { viewModel.state = .expanded }
+            }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -64,7 +74,8 @@ struct NotchRootView: View {
         }
         .onAppear(perform: syncLiveActivity)
         .onChange(of: media.nowPlaying) { syncLiveActivity() }
-        .animation(Self.spring, value: expanded)
+        .animation(Self.spring, value: viewModel.state)
+        .animation(Self.spring, value: viewModel.alert)
         .animation(Self.spring, value: viewModel.hasLiveActivity)
         .animation(Self.spring, value: showShelf)
     }
@@ -84,6 +95,21 @@ struct NotchRootView: View {
         .padding(.top, viewModel.notchSize.height + 8)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func alertContent(_ alert: IslandAlert) -> some View {
+        HStack(spacing: 0) {
+            Image(systemName: alert.icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(alert.iconColor)
+                .frame(width: viewModel.wingWidth)
+            Spacer(minLength: viewModel.notchSize.width)
+            Text(alert.text)
+                .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                .foregroundStyle(alert.textColor)
+                .frame(width: viewModel.wingWidth)
+        }
+        .frame(height: viewModel.notchSize.height)
     }
 
     /// Artwork on the left wing, equalizer on the right; the physical notch sits in between.

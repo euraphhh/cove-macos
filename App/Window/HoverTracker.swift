@@ -40,7 +40,11 @@ final class HoverTracker {
         let holding = NSEvent.pressedMouseButtons != 0 && viewModel.state == .expanded
         if holding && !inside { return }
         panel.ignoresMouseEvents = !inside
-        let target: NotchState = inside ? .expanded : .closed
+        let dragging = NSEvent.pressedMouseButtons != 0
+        let target: NotchState
+        if !inside { target = .closed }
+        else if viewModel.state == .expanded || dragging { target = .expanded } // drag goes straight to shelf
+        else { target = .peek } // click expands (handled in NotchRootView)
         if viewModel.state != target { viewModel.state = target }
     }
 }

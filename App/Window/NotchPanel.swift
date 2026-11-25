@@ -17,7 +17,7 @@ final class NotchPanel: NSPanel {
         ignoresMouseEvents = true
         isMovable = false
 
-        let host = NSHostingView(rootView: NotchRootView(viewModel: viewModel, media: media, shelf: shelf))
+        let host = FirstMouseHostingView(rootView: NotchRootView(viewModel: viewModel, media: media, shelf: shelf))
         host.layer?.backgroundColor = .clear
         contentView = host
     }
@@ -30,4 +30,9 @@ final class NotchPanel: NSPanel {
         viewModel.notchSize = NotchGeometry.notchSize(on: screen)
         setFrame(NotchGeometry.panelFrame(on: screen), display: true)
     }
+}
+
+/// Lets the first click on the (never key) panel go straight to SwiftUI.
+final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
