@@ -104,10 +104,16 @@ struct NotchRootView: View {
                 .foregroundStyle(alert.iconColor)
                 .frame(width: viewModel.wingWidth)
             Spacer(minLength: viewModel.notchSize.width)
-            Text(alert.text)
-                .font(.system(size: 13, weight: .semibold).monospacedDigit())
-                .foregroundStyle(alert.textColor)
-                .frame(width: viewModel.wingWidth)
+            Group {
+                if let progress = alert.progress {
+                    LevelBar(value: progress).padding(.horizontal, 10)
+                } else {
+                    Text(alert.text)
+                        .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(alert.textColor)
+                }
+            }
+            .frame(width: viewModel.wingWidth)
         }
         .frame(height: viewModel.notchSize.height)
     }
@@ -123,5 +129,20 @@ struct NotchRootView: View {
                 .frame(width: viewModel.wingWidth)
         }
         .frame(height: h)
+    }
+}
+
+/// Thin rounded level bar used by the volume/brightness HUD.
+struct LevelBar: View {
+    var value: Double
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.25))
+                Capsule().fill(.white).frame(width: geo.size.width * min(max(value, 0), 1))
+            }
+        }
+        .frame(height: 5)
+        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: value)
     }
 }

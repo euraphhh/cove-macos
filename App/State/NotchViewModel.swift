@@ -9,6 +9,8 @@ struct IslandAlert: Equatable {
     var iconColor: Color
     var text: String
     var textColor: Color = .white
+    /// When set, the right wing shows a level bar (volume, brightness) instead of text.
+    var progress: Double? = nil
 }
 
 @Observable
@@ -21,7 +23,10 @@ final class NotchViewModel {
     private var alertTask: Task<Void, Never>?
 
     /// Width of each "wing" beside the physical notch.
-    var wingWidth: CGFloat { alert != nil ? notchSize.height + 24 : notchSize.height + 6 }
+    var wingWidth: CGFloat {
+        guard let alert else { return notchSize.height + 6 }
+        return notchSize.height + (alert.progress != nil ? 52 : 24)
+    }
 
     var closedSize: CGSize {
         let widened = hasLiveActivity || alert != nil

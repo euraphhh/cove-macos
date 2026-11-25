@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
     private var power: PowerMonitor?
     private var bluetooth: BluetoothMonitor?
+    private var volume: VolumeMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf)
@@ -35,6 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         power?.start()
         bluetooth = BluetoothMonitor(viewModel: viewModel)
         bluetooth?.start()
+        volume = VolumeMonitor(viewModel: viewModel)
+        volume?.start()
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
