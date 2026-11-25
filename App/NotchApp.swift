@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let shelf = ShelfModule()
     private var menuBar: MenuBarController?
     private var power: PowerMonitor?
+    private var bluetooth: BluetoothMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf)
@@ -32,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar = MenuBarController()
         power = PowerMonitor(viewModel: viewModel)
         power?.start()
+        bluetooth = BluetoothMonitor(viewModel: viewModel)
+        bluetooth?.start()
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
