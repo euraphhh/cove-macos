@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let calendar = CalendarModule()
     private let privacy = PrivacyMonitor()
     private var menuBar: MenuBarController?
+    private var onboarding: OnboardingController?
     private var power: PowerMonitor?
     private var bluetooth: BluetoothMonitor?
     private var volume: VolumeMonitor?
@@ -45,7 +46,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: "Done", textColor: .orange), for: 4)
         }
         _ = Updater.shared
-        menuBar = MenuBarController(timer: timer, calendar: calendar)
+        let onboarding = OnboardingController(calendar: calendar)
+        self.onboarding = onboarding
+        menuBar = MenuBarController(timer: timer, calendar: calendar, onboarding: onboarding)
+        onboarding.showIfNeeded()
         power = PowerMonitor(viewModel: viewModel)
         power?.start()
         DebugHooks.install(viewModel: viewModel, power: power, calendar: calendar, timer: timer, privacy: privacy)

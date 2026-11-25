@@ -4,13 +4,20 @@ import SwiftUI
 struct NotchShape: Shape {
     var radius: CGFloat
     var ear: CGFloat
-    var animatableData: AnimatablePair<CGFloat, CGFloat> {
-        get { AnimatablePair(radius, ear) }
-        set { radius = newValue.first; ear = newValue.second }
+    /// Rounds the top corners too (floating pill on screens without a notch).
+    var topRadius: CGFloat = 0
+    var animatableData: AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>> {
+        get { AnimatablePair(radius, AnimatablePair(ear, topRadius)) }
+        set { radius = newValue.first; ear = newValue.second.first; topRadius = newValue.second.second }
     }
 
     func path(in r: CGRect) -> Path {
         let e = ear, rad = min(radius, (r.height - e) , (r.width - 2 * e) / 2)
+        if topRadius > 0 {
+            return Path(roundedRect: r, cornerRadii: RectangleCornerRadii(
+                topLeading: min(topRadius, r.height / 2), bottomLeading: rad,
+                bottomTrailing: rad, topTrailing: min(topRadius, r.height / 2)), style: .continuous)
+        }
         var p = Path()
         p.move(to: CGPoint(x: r.minX, y: r.minY))
         p.addQuadCurve(to: CGPoint(x: r.minX + e, y: r.minY + e), control: CGPoint(x: r.minX + e, y: r.minY))
@@ -104,10 +111,14 @@ struct NotchRootView: View {
         case .peek: viewModel.peekSize
         case .closed: viewModel.closedSize
         }
-        let ear = expanded ? Self.earExpanded : Self.earClosed
+        let notch = viewModel.hasNotch
+        let ear = notch ? (expanded ? Self.earExpanded : Self.earClosed) : 0
+        let radius = expanded ? (notch ? 36 : 28) : (notch ? min(size.height / 2.4, 14) : size.height / 2)
+        // Without a notch, an idle island would just be a black pill in the menu bar: hide it.
+        let hidden = !notch && viewModel.state == .closed && !viewModel.hasLiveActivity && viewModel.alert == nil
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
-                NotchShape(radius: expanded ? 36 : min(size.height / 2.4, 14), ear: ear).fill(.black)
+                NotchShape(radius: radius, ear: ear, topRadius: notch ? 0 : radius).fill(.black)
                 Group {
                     if expanded {
                         expandedContent.transition(.island)
@@ -124,6 +135,8 @@ struct NotchRootView: View {
             .scaleEffect(viewModel.isPressed ? 0.95 : 1, anchor: .top)
             .offset(x: viewModel.nudgeOffset)
             .gesture(pressGesture, including: expanded ? .subviews : .all)
+            .opacity(hidden ? 0 : 1)
+            .padding(.top, notch ? 0 : 2)
             .overlay(alignment: .topTrailing) {
                 if let secondary = viewModel.secondary, !expanded {
                     bubble(for: secondary)

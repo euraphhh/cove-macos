@@ -11,7 +11,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let calendar: CalendarModule
     private let calendarItem = NSMenuItem(title: "Show Upcoming Meetings", action: #selector(toggleCalendar), keyEquivalent: "")
 
-    init(timer: TimerModule, calendar: CalendarModule) {
+    private let onboarding: OnboardingController
+
+    init(timer: TimerModule, calendar: CalendarModule, onboarding: OnboardingController) {
+        self.onboarding = onboarding
         self.timer = timer
         self.calendar = calendar
         super.init()
@@ -42,6 +45,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(launchItem)
         menu.addItem(hudItem)
         menu.addItem(settings)
+        let welcome = NSMenuItem(title: "Welcome…", action: #selector(showWelcome), keyEquivalent: "")
+        welcome.target = self
+        menu.addItem(welcome)
         let updates = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         updates.target = self
         menu.addItem(updates)
@@ -62,6 +68,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func startTimer(_ sender: NSMenuItem) { timer.start(minutes: Double(sender.tag)) }
     @objc private func cancelTimer() { timer.cancel() }
+
+    @objc private func showWelcome() { onboarding.show() }
 
     @objc private func checkForUpdates() {
         NSApp.activate(ignoringOtherApps: true)

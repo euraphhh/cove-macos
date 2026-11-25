@@ -4,17 +4,25 @@ struct NotchGeometry {
     /// Panel size: big enough for the largest expanded layout plus the top "ears".
     static let expandedSize = CGSize(width: 680, height: 240)
 
-    /// Screen with a notch if any, otherwise the main screen (floating island fallback).
-    static var targetScreen: NSScreen? {
-        NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main
+    /// Debug: `defaults write com.euraphhh.cove simulateNoNotch -bool true` to preview the pill layout.
+    static var simulateNoNotch: Bool { UserDefaults.standard.bool(forKey: "simulateNoNotch") }
+
+    static func hasNotch(_ screen: NSScreen) -> Bool {
+        !simulateNoNotch && screen.safeAreaInsets.top > 0
     }
 
-    /// Physical notch size, or a fallback pill size for screens without a notch.
+    /// Screen with a notch if any, otherwise the main screen (floating island fallback).
+    static var targetScreen: NSScreen? {
+        NSScreen.screens.first(where: hasNotch) ?? NSScreen.main
+    }
+
+    /// Physical notch size, or a compact pill that fits inside the menu bar on screens without one.
     static func notchSize(on screen: NSScreen) -> CGSize {
-        guard screen.safeAreaInsets.top > 0,
+        guard hasNotch(screen),
               let left = screen.auxiliaryTopLeftArea,
               let right = screen.auxiliaryTopRightArea else {
-            return CGSize(width: 200, height: 32)
+            let menuBar = max(screen.frame.maxY - screen.visibleFrame.maxY, 24)
+            return CGSize(width: 110, height: menuBar - 4)
         }
         let width = screen.frame.width - left.width - right.width
         return CGSize(width: width, height: screen.safeAreaInsets.top)
@@ -22,7 +30,9 @@ struct NotchGeometry {
 
     static func panelFrame(on screen: NSScreen) -> NSRect {
         let s = expandedSize
-        return NSRect(x: screen.frame.midX - s.width / 2,
+        // When simulating on a notched Mac, move aside so the physical notch doesn't hide the pill.
+        let shift: CGFloat = simulateNoNotch && screen.safeAreaInsets.top > 0 ? 350 : 0
+        return NSRect(x: screen.frame.midX - s.width / 2 + shift,
                       y: screen.frame.maxY - s.height,
                       width: s.width, height: s.height)
     }

@@ -36,6 +36,8 @@ final class NotchViewModel {
     /// Debug only: keep the current state regardless of the cursor.
     var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)
+    /// False on screens without a notch: the island becomes a floating pill.
+    var hasNotch = true
     /// A live activity (e.g. music playing) widens the closed island around the notch.
     var hasLiveActivity = false
     /// Live activity needs room for text on the right wing (timer countdown).

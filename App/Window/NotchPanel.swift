@@ -8,7 +8,10 @@ final class NotchPanel: NSPanel {
         self.viewModel = viewModel
         // Start at the final frame so nothing animates in from the corner at launch.
         let initial = NotchGeometry.targetScreen.map(NotchGeometry.panelFrame(on:)) ?? .zero
-        if let screen = NotchGeometry.targetScreen { viewModel.notchSize = NotchGeometry.notchSize(on: screen) }
+        if let screen = NotchGeometry.targetScreen {
+            viewModel.notchSize = NotchGeometry.notchSize(on: screen)
+            viewModel.hasNotch = NotchGeometry.hasNotch(screen)
+        }
         super.init(contentRect: initial,
                    styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered, defer: false)
@@ -31,6 +34,7 @@ final class NotchPanel: NSPanel {
     func reposition() {
         guard let screen = NotchGeometry.targetScreen else { return }
         viewModel.notchSize = NotchGeometry.notchSize(on: screen)
+        viewModel.hasNotch = NotchGeometry.hasNotch(screen)
         setFrame(NotchGeometry.panelFrame(on: screen), display: true)
     }
 }
