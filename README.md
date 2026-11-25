@@ -23,4 +23,6 @@ or open it via System Settings > Privacy & Security > "Open Anyway".
 - [x] Alerts: charger, headphones (with battery)
 - [x] Volume/brightness HUD (optional, needs Accessibility)
 - [x] Timer (menu bar > Timer)
+- [x] Upcoming meeting with Join button (menu bar > Show Upcoming Meetings)
+- [x] Low battery alert
 - [x] Menu bar + Settings + launch at login

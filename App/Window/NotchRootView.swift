@@ -53,6 +53,7 @@ struct NotchRootView: View {
     let media: MediaModule
     let shelf: ShelfModule
     let timer: TimerModule
+    let calendar: CalendarModule
 
     private var expanded: Bool { viewModel.state == .expanded }
     private var showShelf: Bool { !shelf.items.isEmpty || shelf.isTargeted }
@@ -100,6 +101,8 @@ struct NotchRootView: View {
         .onAppear(perform: sync)
         .onChange(of: media.nowPlaying) { sync() }
         .onChange(of: timer.isAvailable) { sync() }
+        .onChange(of: calendar.next) { sync() }
+        .onReceive(Timer.publish(every: 15, on: .main, in: .common).autoconnect()) { _ in sync() }
         .onChange(of: showShelf) { sync() }
         .animation(expanded ? Self.openSpring : Self.closeSpring, value: viewModel.state)
         .animation(Self.spring, value: viewModel.alert)
@@ -108,11 +111,12 @@ struct NotchRootView: View {
     }
 
     private func sync() {
-        viewModel.wideLiveActivity = timer.isAvailable
-        viewModel.hasLiveActivity = timer.isAvailable || media.nowPlaying?.isPlaying == true
+        viewModel.wideLiveActivity = timer.isAvailable || calendar.isAvailable
+        viewModel.hasLiveActivity = viewModel.wideLiveActivity || media.nowPlaying?.isPlaying == true
         // Expanded island hugs its content.
         let top = viewModel.notchSize.height
-        let contentHeight: CGFloat = timer.isAvailable || media.nowPlaying == nil ? 72 : 138
+        let compactCard = timer.isAvailable || calendar.isAvailable || media.nowPlaying == nil
+        let contentHeight: CGFloat = compactCard ? 58 : 138
         let width: CGFloat = showShelf ? 640 : 440
         viewModel.expandedSize = CGSize(width: width, height: top + contentHeight + 22)
     }
@@ -120,7 +124,9 @@ struct NotchRootView: View {
     private var expandedContent: some View {
         HStack(spacing: 18) {
             Group {
-                if timer.isAvailable { timer.expandedView } else { media.expandedView }
+                if timer.isAvailable { timer.expandedView }
+                else if calendar.isAvailable { calendar.expandedView }
+                else { media.expandedView }
             }
             .frame(maxWidth: .infinity)
             if showShelf {
@@ -158,6 +164,13 @@ struct NotchRootView: View {
                     Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange)
                 } trailing: {
                     TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+            } else if calendar.isAvailable, let meeting = calendar.next {
+                wings {
+                    Image(systemName: "calendar").font(.system(size: 14, weight: .semibold)).foregroundStyle(meeting.color)
+                } trailing: {
+                    MeetingCountdownText(meeting: meeting, font: .system(size: 13, weight: .semibold))
                         .lineLimit(1).minimumScaleFactor(0.7)
                 }
             } else {

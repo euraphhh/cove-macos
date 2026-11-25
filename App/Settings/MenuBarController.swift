@@ -8,9 +8,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var settingsWindow: NSWindow?
 
     private let timer: TimerModule
+    private let calendar: CalendarModule
+    private let calendarItem = NSMenuItem(title: "Show Upcoming Meetings", action: #selector(toggleCalendar), keyEquivalent: "")
 
-    init(timer: TimerModule) {
+    init(timer: TimerModule, calendar: CalendarModule) {
         self.timer = timer
+        self.calendar = calendar
         super.init()
         item.button?.image = NSImage(systemSymbolName: "capsule.fill", accessibilityDescription: "Cove")
         let menu = NSMenu()
@@ -33,6 +36,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         timerMenu.addItem(cancel)
         timerItem.submenu = timerMenu
         menu.addItem(timerItem)
+        calendarItem.target = self
+        menu.addItem(calendarItem)
         menu.addItem(.separator())
         menu.addItem(launchItem)
         menu.addItem(hudItem)
@@ -44,6 +49,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     func menuWillOpen(_ menu: NSMenu) {
         launchItem.state = LaunchAtLogin.isEnabled ? .on : .off
+        calendarItem.state = calendar.isEnabled ? .on : .off
         hudItem.state = MediaKeyInterceptor.shared.isEnabled ? .on : .off
     }
 
@@ -53,6 +59,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func startTimer(_ sender: NSMenuItem) { timer.start(minutes: Double(sender.tag)) }
     @objc private func cancelTimer() { timer.cancel() }
+
+    @objc private func toggleCalendar() { calendar.setEnabled(!calendar.isEnabled) }
 
     @objc private func toggleHUD() {
         MediaKeyInterceptor.shared.setEnabled(!MediaKeyInterceptor.shared.isEnabled)

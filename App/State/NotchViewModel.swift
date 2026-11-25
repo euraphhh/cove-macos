@@ -16,6 +16,8 @@ struct IslandAlert: Equatable {
 @Observable
 final class NotchViewModel {
     var state: NotchState = .closed
+    /// Debug only: keep the current state regardless of the cursor.
+    var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)
     /// A live activity (e.g. music playing) widens the closed island around the notch.
     var hasLiveActivity = false

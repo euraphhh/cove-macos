@@ -21,7 +21,7 @@ final class HoverTracker {
     }
 
     private func update() {
-        guard let panel else { return }
+        guard let panel, !viewModel.pinned else { return }
         let p = NSEvent.mouseLocation
         let frame = panel.frame
         let notch = viewModel.closedSize
