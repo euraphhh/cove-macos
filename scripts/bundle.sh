@@ -2,7 +2,8 @@
 # Builds Cove.app (arm64, ad-hoc signed) into ./build
 set -euo pipefail
 cd "$(dirname "$0")/.."
-VERSION="${VERSION:-0.1.0}"
+# Local builds use the latest tag so Sparkle does not offer to "update" a dev build.
+VERSION="${VERSION:-$(git describe --tags --abbrev=0 2>/dev/null | sed "s/^v//" || echo 0.0.0)}"
 swift build -c release --arch arm64
 APP=build/Cove.app
 rm -rf "$APP" && mkdir -p "$APP/Contents/MacOS"
