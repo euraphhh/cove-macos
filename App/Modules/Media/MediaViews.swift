@@ -1,3 +1,4 @@
+import CoreAudio
 import SwiftUI
 
 struct Artwork: View {
@@ -29,9 +30,13 @@ struct MediaCompactView: View {
 /// iPhone-style expanded player: header, scrubber, centered transport.
 struct MediaExpandedView: View {
     let media: MediaModule
+    @State private var showingRoutes = false
 
     var body: some View {
-        if let np = media.nowPlaying {
+        if showingRoutes {
+            RoutePicker(showingRoutes: $showingRoutes)
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+        } else if let np = media.nowPlaying {
             VStack(spacing: 10) {
                 HStack(spacing: 12) {
                     Artwork(image: media.artwork, size: 52, radius: 12)
@@ -52,13 +57,17 @@ struct MediaExpandedView: View {
                     .font(.system(size: 11, weight: .medium).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.55))
                 }
-                HStack(spacing: 44) {
-                    TransportButton(icon: "backward.fill", size: 20) { media.send("previous track") }
-                    TransportButton(icon: np.isPlaying ? "pause.fill" : "play.fill", size: 28) { media.send("playpause") }
-                    TransportButton(icon: "forward.fill", size: 20) { media.send("next track") }
+                ZStack {
+                    HStack(spacing: 44) {
+                        TransportButton(icon: "backward.fill", size: 20) { media.send("previous track") }
+                        TransportButton(icon: np.isPlaying ? "pause.fill" : "play.fill", size: 28) { media.send("playpause") }
+                        TransportButton(icon: "forward.fill", size: 20) { media.send("next track") }
+                    }
+                    HStack { Spacer(); RouteButton(showingRoutes: $showingRoutes) }
                 }
             }
             .foregroundStyle(.white)
+            .transition(.opacity.combined(with: .scale(scale: 0.96)))
         } else {
             HStack(spacing: 10) {
                 Image(systemName: "music.note")
@@ -102,5 +111,69 @@ struct PressScaleStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.82 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
+
+/// AirPlay-style button; its icon reflects the current output (AirPods, speaker...).
+struct RouteButton: View {
+    @Binding var showingRoutes: Bool
+    var body: some View {
+        let current = AudioOutputs.all().first { $0.id == AudioOutputs.currentID }
+        let icon = current.map { $0.transport == kAudioDeviceTransportTypeBuiltIn ? "airplayaudio" : $0.icon } ?? "airplayaudio"
+        Button { withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showingRoutes.toggle() } } label: {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(current?.transport == kAudioDeviceTransportTypeBuiltIn ? .white.opacity(0.7) : .blue)
+                .frame(width: 32, height: 32)
+        }
+        .buttonStyle(PressScaleStyle())
+    }
+}
+
+/// Inline output picker that replaces the player, like the iOS route sheet.
+struct RoutePicker: View {
+    @Binding var showingRoutes: Bool
+    @State private var outputs = AudioOutputs.all()
+    @State private var current = AudioOutputs.currentID
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Audio Output").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white.opacity(0.55))
+                Spacer()
+                Button { withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showingRoutes = false } } label: {
+                    Image(systemName: "xmark.circle.fill").font(.system(size: 16)).foregroundStyle(.white.opacity(0.4))
+                }
+                .buttonStyle(PressScaleStyle())
+            }
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 2) {
+                    ForEach(outputs) { output in
+                        Button {
+                            AudioOutputs.select(output)
+                            current = output.id
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showingRoutes = false }
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: output.icon).font(.system(size: 15)).frame(width: 24)
+                                Text(output.name).font(.system(size: 14)).lineLimit(1)
+                                Spacer()
+                                if output.id == current {
+                                    Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundStyle(.blue)
+                                }
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10).frame(height: 30)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(.white.opacity(output.id == current ? 0.1 : 0)))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressScaleStyle())
+                    }
+                }
+            }
+        }
+        .onAppear { outputs = AudioOutputs.all(); current = AudioOutputs.currentID }
     }
 }
