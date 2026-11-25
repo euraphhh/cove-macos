@@ -79,7 +79,7 @@ final class PowerMonitor {
         }
     }
 
-    private static func read() -> (onAC: Bool, percent: Int)? {
+    static func read() -> (onAC: Bool, percent: Int)? {
         guard let blob = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return nil }
         let type = IOPSGetProvidingPowerSourceType(blob)?.takeUnretainedValue() as String?
         let list = IOPSCopyPowerSourcesList(blob)?.takeRetainedValue() as? [CFTypeRef] ?? []

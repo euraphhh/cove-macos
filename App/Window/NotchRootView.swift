@@ -210,9 +210,10 @@ struct NotchRootView: View {
         if let f = viewModel.focused, !list.contains(f) { viewModel.focused = nil }
         // Expanded island hugs its content.
         let top = viewModel.notchSize.height
-        let compactCard = expandedActivity != .media && (expandedActivity != nil || media.nowPlaying == nil)
-        let contentHeight: CGFloat = compactCard ? 58 : 138
-        let width: CGFloat = showShelf ? 640 : 440
+        let home = expandedActivity == nil && (media.nowPlaying == nil || !musicOn)
+        let compactCard = expandedActivity != nil && expandedActivity != .media
+        let contentHeight: CGFloat = home ? 108 : compactCard ? 58 : 138
+        let width: CGFloat = (showShelf ? 200 : 0) + (home ? 500 : 440)
         viewModel.expandedSize = CGSize(width: width, height: top + contentHeight + 22)
     }
 
@@ -223,7 +224,10 @@ struct NotchRootView: View {
                 case .timer: timer.expandedView
                 case .meeting: calendar.expandedView
                 case .download: downloads.expandedView
-                case .media, nil: media.expandedView
+                case .media: media.expandedView
+                case nil:
+                    if media.nowPlaying != nil && musicOn { media.expandedView }
+                    else { HomeView(calendar: calendar, timer: timer) }
                 }
             }
             .frame(maxWidth: .infinity)

@@ -27,6 +27,8 @@ enum DebugHooks {
             case "camera", "mic": privacy.debugOverride = note.object as? String
             case "noPrivacy": privacy.debugOverride = nil
             case "unlock": unlock?.play()
+            case "musicOff": UserDefaults.standard.set(false, forKey: Prefs.music)
+            case "musicOn": UserDefaults.standard.set(true, forKey: Prefs.music)
             case "lowPower": power?.showLowPowerMode(true)
             case "screenshot":
                 viewModel.show(IslandAlert(icon: "camera.viewfinder", iconColor: .white, text: "",

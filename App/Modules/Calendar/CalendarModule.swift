@@ -22,6 +22,8 @@ final class CalendarModule: NotchModule {
     static let graceAfterStart: TimeInterval = 5 * 60
 
     private(set) var next: Meeting?
+    /// Remaining events today, for the island's home view.
+    private(set) var today: [Meeting] = []
     var onStart: ((Meeting) -> Void)?
     private let store = EKEventStore()
     private var timer: Timer?
@@ -65,17 +67,20 @@ final class CalendarModule: NotchModule {
         let now = Date()
         let predicate = store.predicateForEvents(withStart: now.addingTimeInterval(-Self.graceAfterStart),
                                                  end: now.addingTimeInterval(12 * 3600), calendars: nil)
-        let event = store.events(matching: predicate)
+        let events = store.events(matching: predicate)
             .filter { !$0.isAllDay && $0.status != .canceled && !Self.declined($0) }
             .filter { $0.startDate.addingTimeInterval(Self.graceAfterStart) > now }
-            .min { $0.startDate < $1.startDate }
-        let meeting = event.map {
+            .sorted { $0.startDate < $1.startDate }
+        let meetings = events.map {
             Meeting(id: $0.eventIdentifier ?? UUID().uuidString, title: $0.title ?? "Meeting",
                     start: $0.startDate, end: $0.endDate,
                     color: Color(nsColor: $0.calendar?.color ?? .systemBlue),
                     joinURL: Self.joinURL(in: $0))
         }
-        set(meeting)
+        let endOfDay = Calendar.current.startOfDay(for: now).addingTimeInterval(24 * 3600)
+        let todays = Array(meetings.filter { $0.start < endOfDay }.prefix(3))
+        if todays != today { today = todays }
+        set(meetings.first)
     }
 
     /// Used by refresh and by the debug hook.

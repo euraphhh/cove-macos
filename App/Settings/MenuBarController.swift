@@ -48,6 +48,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let welcome = NSMenuItem(title: "Welcome…", action: #selector(showWelcome), keyEquivalent: "")
         welcome.target = self
         menu.addItem(welcome)
+        let feedback = NSMenuItem(title: "Send Feedback…", action: #selector(sendFeedback), keyEquivalent: "")
+        feedback.target = self
+        menu.addItem(feedback)
         let updates = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         updates.target = self
         menu.addItem(updates)
@@ -68,6 +71,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func startTimer(_ sender: NSMenuItem) { timer.start(minutes: Double(sender.tag)) }
     @objc private func cancelTimer() { timer.cancel() }
+
+    @objc private func sendFeedback() { Feedback.open() }
 
     @objc private func showWelcome() { onboarding.show() }
 
