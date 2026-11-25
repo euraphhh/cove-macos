@@ -63,7 +63,7 @@ struct MediaExpandedView: View {
                     .foregroundStyle(.white.opacity(scrubbing != nil ? 0.9 : 0.55))
                 }
                 ZStack {
-                    HStack(spacing: 44) {
+                    HStack(spacing: 26) {
                         TransportButton(icon: "backward.fill", size: 20) { media.send("previous track") }
                         TransportButton(icon: np.isPlaying ? "pause.fill" : "play.fill", size: 28) { media.send("playpause") }
                         TransportButton(icon: "forward.fill", size: 20) { media.send("next track") }
@@ -95,19 +95,38 @@ struct TransportButton: View {
     let icon: String
     let size: CGFloat
     let action: () -> Void
-    @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: size, weight: .semibold))
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: size + 20, height: size + 12)
-                .background(Circle().fill(.white.opacity(hovering ? 0.12 : 0)))
         }
-        .buttonStyle(PressScaleStyle())
-        .onHover { hovering = $0 }
-        .animation(.easeOut(duration: 0.15), value: hovering)
+        .buttonStyle(CircleHighlightStyle(diameter: size * 1.9))
+    }
+}
+
+/// iOS-style control: a translucent circle that fully covers the button on hover/press.
+struct CircleHighlightStyle: ButtonStyle {
+    var diameter: CGFloat
+    func makeBody(configuration: Configuration) -> some View {
+        HighlightBody(configuration: configuration, diameter: diameter)
+    }
+
+    private struct HighlightBody: View {
+        let configuration: Configuration
+        let diameter: CGFloat
+        @State private var hovering = false
+        var body: some View {
+            configuration.label
+                .frame(width: diameter, height: diameter)
+                .background(Circle().fill(.white.opacity(configuration.isPressed ? 0.24 : hovering ? 0.13 : 0)))
+                .contentShape(Circle())
+                .scaleEffect(configuration.isPressed ? 0.88 : 1)
+                .onHover { hovering = $0 }
+                .animation(.easeOut(duration: 0.15), value: hovering)
+                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+        }
     }
 }
 
@@ -129,9 +148,8 @@ struct RouteButton: View {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(current?.transport == kAudioDeviceTransportTypeBuiltIn ? .white.opacity(0.7) : .blue)
-                .frame(width: 32, height: 32)
         }
-        .buttonStyle(PressScaleStyle())
+        .buttonStyle(CircleHighlightStyle(diameter: 34))
     }
 }
 
