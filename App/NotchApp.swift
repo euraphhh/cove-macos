@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar = MenuBarController(timer: timer)
         power = PowerMonitor(viewModel: viewModel)
         power?.start()
+        DebugHooks.install(viewModel: viewModel, power: power)
         bluetooth = BluetoothMonitor(viewModel: viewModel)
         bluetooth?.start()
         volume = VolumeMonitor(viewModel: viewModel)

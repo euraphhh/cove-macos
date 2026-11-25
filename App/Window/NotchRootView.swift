@@ -146,6 +146,7 @@ struct NotchRootView: View {
                 Text(alert.text)
                     .font(.system(size: 13, weight: .semibold).monospacedDigit())
                     .foregroundStyle(alert.textColor)
+                    .lineLimit(1).minimumScaleFactor(0.7)
             }
         }
     }
@@ -157,6 +158,7 @@ struct NotchRootView: View {
                     Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange)
                 } trailing: {
                     TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
+                        .lineLimit(1).minimumScaleFactor(0.7)
                 }
             } else {
                 wings {

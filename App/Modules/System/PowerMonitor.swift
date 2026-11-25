@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import IOKit.ps
 import SwiftUI
@@ -7,13 +8,17 @@ final class PowerMonitor {
     private let viewModel: NotchViewModel
     private var source: CFRunLoopSource?
     private var wasCharging: Bool?
+    private var lastPercent: Int?
+    private static let lowThresholds = [20, 10]
 
     init(viewModel: NotchViewModel) {
         self.viewModel = viewModel
     }
 
     func start() {
-        wasCharging = Self.read()?.onAC
+        let initial = Self.read()
+        wasCharging = initial?.onAC
+        lastPercent = initial?.percent
         let context = Unmanaged.passUnretained(self).toOpaque()
         guard let src = IOPSNotificationCreateRunLoopSource({ ctx in
             guard let ctx else { return }
@@ -24,14 +29,41 @@ final class PowerMonitor {
     }
 
     private func changed() {
-        guard let info = Self.read(), info.onAC != wasCharging else { return }
-        wasCharging = info.onAC
-        let pct = "\(info.percent)%"
-        if info.onAC {
-            viewModel.show(IslandAlert(icon: "bolt.fill", iconColor: .green, text: pct, textColor: .green))
-        } else {
-            let color: Color = info.percent <= 20 ? .red : .white
-            viewModel.show(IslandAlert(icon: "battery.100", iconColor: color, text: pct, textColor: color))
+        guard let info = Self.read() else { return }
+        defer { wasCharging = info.onAC; lastPercent = info.percent }
+
+        if info.onAC != wasCharging {
+            info.onAC ? showCharging(info.percent) : showUnplugged(info.percent)
+        } else if !info.onAC, let last = lastPercent,
+                  Self.lowThresholds.contains(where: { last > $0 && info.percent <= $0 }) {
+            showLowBattery(info.percent)
+        }
+    }
+
+    func showCharging(_ percent: Int) {
+        viewModel.show(IslandAlert(icon: "bolt.fill", iconColor: .green, text: "\(percent)%", textColor: .green))
+    }
+
+    func showUnplugged(_ percent: Int) {
+        let low = percent <= 20
+        viewModel.show(IslandAlert(icon: Self.batteryIcon(percent), iconColor: low ? .red : .white,
+                                   text: "\(percent)%", textColor: low ? .red : .white))
+    }
+
+    /// Like iOS: red battery and a longer, more noticeable alert.
+    func showLowBattery(_ percent: Int) {
+        viewModel.show(IslandAlert(icon: Self.batteryIcon(percent), iconColor: .red,
+                                   text: "\(percent)%", textColor: .red), for: 5)
+        NSSound(named: "Funk")?.play()
+    }
+
+    private static func batteryIcon(_ percent: Int) -> String {
+        switch percent {
+        case ..<5: "battery.0"
+        case ..<38: "battery.25"
+        case ..<63: "battery.50"
+        case ..<88: "battery.75"
+        default: "battery.100"
         }
     }
 

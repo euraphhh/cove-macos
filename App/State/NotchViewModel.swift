@@ -28,8 +28,9 @@ final class NotchViewModel {
 
     /// Width of each "wing" beside the physical notch.
     var wingWidth: CGFloat {
-        guard let alert else { return notchSize.height + (wideLiveActivity ? 24 : 6) }
-        return notchSize.height + (alert.progress != nil ? 52 : 24)
+        // Kept tight so the island covers as few menu bar items as possible.
+        guard let alert else { return notchSize.height + (wideLiveActivity ? 2 : -4) }
+        return notchSize.height + (alert.progress != nil ? 36 : 2)
     }
 
     var closedSize: CGSize {

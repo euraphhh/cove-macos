@@ -22,7 +22,7 @@ struct Artwork: View {
 struct MediaCompactView: View {
     let media: MediaModule
     var body: some View {
-        Artwork(image: media.artwork, size: 20, radius: 5)
+        Artwork(image: media.artwork, size: 19, radius: 5)
     }
 }
 
