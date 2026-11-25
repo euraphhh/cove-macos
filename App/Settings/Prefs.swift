@@ -11,6 +11,9 @@ enum Prefs {
     static let downloads = "module.downloads"
     static let focus = "module.focus"
     static let unlock = "module.unlock"
+    static let screenshots = "module.screenshots"
+    static let network = "module.network"
+    static let lowPower = "module.lowPower"
     /// "" = automatic (notch screen, else main), "main" = main display, otherwise a screen's localizedName.
     static let display = "display"
 
@@ -19,7 +22,7 @@ enum Prefs {
     static func register() {
         UserDefaults.standard.register(defaults: [
             music: true, shelf: true, battery: true, headphones: true, privacy: true, bubble: true,
-            unlock: true,
+            unlock: true, screenshots: true, network: true, lowPower: true,
             // These touch protected locations (Downloads folder, Focus database): opt-in.
             downloads: false, focus: false,
             display: "",

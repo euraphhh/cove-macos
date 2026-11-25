@@ -239,10 +239,17 @@ struct NotchRootView: View {
 
     private func alertContent(_ alert: IslandAlert) -> some View {
         wings {
-            Image(systemName: alert.icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(alert.iconColor)
-                .contentTransition(.symbolEffect(.replace))
+            if let image = alert.image {
+                Image(nsImage: image).resizable().scaledToFill()
+                    .frame(width: viewModel.notchSize.height - 8, height: viewModel.notchSize.height - 10)
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(.white.opacity(0.3), lineWidth: 1))
+            } else {
+                Image(systemName: alert.icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(alert.iconColor)
+                    .contentTransition(.symbolEffect(.replace))
+            }
         } trailing: {
             if let progress = alert.progress {
                 LevelBar(value: progress).padding(.trailing, 12).padding(.leading, 4)

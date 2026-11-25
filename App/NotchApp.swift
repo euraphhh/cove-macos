@@ -25,6 +25,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let downloads = DownloadModule()
     private var focus: FocusMonitor?
     private var unlock: UnlockMonitor?
+    private var screenshots: ScreenshotWatcher?
+    private var network: NetworkMonitor?
     private var menuBar: MenuBarController?
     private var onboarding: OnboardingController?
     private var power: PowerMonitor?
@@ -50,6 +52,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         focus?.start()
         unlock = UnlockMonitor(viewModel: viewModel)
         unlock?.start()
+        screenshots = ScreenshotWatcher(viewModel: viewModel, shelf: shelf)
+        screenshots?.start()
+        network = NetworkMonitor(viewModel: viewModel)
+        network?.start()
         calendar.onStart = { [viewModel] meeting in
             viewModel.show(IslandAlert(icon: "calendar", iconColor: meeting.color, text: "Now", textColor: meeting.color), for: 4)
         }

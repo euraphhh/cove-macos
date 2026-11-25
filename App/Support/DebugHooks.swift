@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 /// Trigger island states from the terminal to check visuals without real events:
@@ -26,6 +27,11 @@ enum DebugHooks {
             case "camera", "mic": privacy.debugOverride = note.object as? String
             case "noPrivacy": privacy.debugOverride = nil
             case "unlock": unlock?.play()
+            case "lowPower": power?.showLowPowerMode(true)
+            case "screenshot":
+                viewModel.show(IslandAlert(icon: "camera.viewfinder", iconColor: .white, text: "",
+                                           image: NSApp.applicationIconImage), for: 3)
+            case "offline": viewModel.show(IslandAlert(icon: "wifi.slash", iconColor: .red, text: "Offline", textColor: .red))
             case "download": downloads.active = .init(name: "Cove-Design.zip", fraction: 0.62)
             case "noDownload": downloads.active = nil
             case "expand": viewModel.pinned = true; viewModel.state = .expanded

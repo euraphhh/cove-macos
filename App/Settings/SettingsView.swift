@@ -15,6 +15,9 @@ struct SettingsView: View {
     @AppStorage(Prefs.downloads) private var downloads = false
     @AppStorage(Prefs.focus) private var focus = false
     @AppStorage(Prefs.unlock) private var unlock = true
+    @AppStorage(Prefs.screenshots) private var screenshots = true
+    @AppStorage(Prefs.network) private var network = true
+    @AppStorage(Prefs.lowPower) private var lowPower = true
     @AppStorage(Prefs.display) private var display = ""
 
     var body: some View {
@@ -44,6 +47,9 @@ struct SettingsView: View {
 
             Section("Alerts") {
                 Toggle("Charger and low battery", isOn: $battery)
+                Toggle("Low Power Mode", isOn: $lowPower)
+                Toggle("Online / offline", isOn: $network)
+                Toggle("New screenshots (added to the Shelf)", isOn: $screenshots)
                 Toggle("Headphones connected", isOn: $headphones)
                 Toggle("Unlock animation", isOn: $unlock)
                 Toggle("Focus mode changes", isOn: $focus)
@@ -72,7 +78,7 @@ struct SettingsView: View {
                 .font(.footnote).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
-        .frame(width: 440, height: 600)
+        .frame(width: 440, height: 680)
     }
 
     private func note(_ text: String) -> some View {

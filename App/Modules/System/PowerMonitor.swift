@@ -26,6 +26,9 @@ final class PowerMonitor {
         }, context)?.takeRetainedValue() else { return }
         source = src
         CFRunLoopAddSource(CFRunLoopGetMain(), src, .defaultMode)
+        NotificationCenter.default.addObserver(forName: .NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in
+            self?.showLowPowerMode(ProcessInfo.processInfo.isLowPowerModeEnabled)
+        }
     }
 
     private func changed() {
@@ -49,6 +52,14 @@ final class PowerMonitor {
         let low = percent <= 20
         viewModel.show(IslandAlert(icon: Self.batteryIcon(percent), iconColor: low ? .red : .white,
                                    text: "\(percent)%", textColor: low ? .red : .white))
+    }
+
+    /// Yellow battery like iOS Low Power Mode.
+    func showLowPowerMode(_ on: Bool) {
+        guard Prefs.on(Prefs.lowPower) else { return }
+        let percent = Self.read()?.percent ?? 50
+        viewModel.show(IslandAlert(icon: Self.batteryIcon(percent), iconColor: on ? .yellow : .white,
+                                   text: on ? "On" : "Off", textColor: on ? .yellow : .white))
     }
 
     /// Like iOS: red battery and a longer, more noticeable alert.

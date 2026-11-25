@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import Observation
 
@@ -17,6 +18,8 @@ struct IslandAlert: Equatable {
     var textColor: Color = .white
     /// When set, the right wing shows a level bar (volume, brightness) instead of text.
     var progress: Double? = nil
+    /// Thumbnail shown instead of the icon (screenshots).
+    var image: NSImage? = nil
 }
 
 @Observable
