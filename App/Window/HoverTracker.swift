@@ -24,7 +24,7 @@ final class HoverTracker {
         guard let panel else { return }
         let p = NSEvent.mouseLocation
         let frame = panel.frame
-        let notch = viewModel.notchSize
+        let notch = viewModel.closedSize
         // Active area: notch rect when closed, the visible expanded shape when open.
         let active: NSRect
         if viewModel.state == .expanded {
