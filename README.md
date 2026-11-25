@@ -19,5 +19,8 @@ or open it via System Settings > Privacy & Security > "Open Anyway".
 - [x] Notch panel with hover expand/collapse
 - [x] Media module (Spotify / Music via AppleScript)
 - [x] Shelf (drag files to the notch and back out)
-- [ ] System HUD
+- [x] Compact live activities (music, timer) with island-style animations
+- [x] Alerts: charger, headphones (with battery)
+- [x] Volume/brightness HUD (optional, needs Accessibility)
+- [x] Timer (menu bar > Timer)
 - [x] Menu bar + Settings + launch at login

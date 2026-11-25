@@ -18,20 +18,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let viewModel = NotchViewModel()
     private let media = MediaModule()
     private let shelf = ShelfModule()
+    private let timer = TimerModule()
     private var menuBar: MenuBarController?
     private var power: PowerMonitor?
     private var bluetooth: BluetoothMonitor?
     private var volume: VolumeMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf)
+        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf, timer: timer)
         self.panel = panel
         panel.reposition()
         panel.orderFrontRegardless()
 
         hover = HoverTracker(panel: panel, viewModel: viewModel)
         media.start()
-        menuBar = MenuBarController()
+        timer.onFinish = { [viewModel] in
+            viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: "Done", textColor: .orange), for: 4)
+        }
+        menuBar = MenuBarController(timer: timer)
         power = PowerMonitor(viewModel: viewModel)
         power?.start()
         bluetooth = BluetoothMonitor(viewModel: viewModel)

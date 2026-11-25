@@ -19,12 +19,14 @@ final class NotchViewModel {
     var notchSize: CGSize = CGSize(width: 200, height: 32)
     /// A live activity (e.g. music playing) widens the closed island around the notch.
     var hasLiveActivity = false
+    /// Live activity needs room for text on the right wing (timer countdown).
+    var wideLiveActivity = false
     private(set) var alert: IslandAlert?
     private var alertTask: Task<Void, Never>?
 
     /// Width of each "wing" beside the physical notch.
     var wingWidth: CGFloat {
-        guard let alert else { return notchSize.height + 6 }
+        guard let alert else { return notchSize.height + (wideLiveActivity ? 24 : 6) }
         return notchSize.height + (alert.progress != nil ? 52 : 24)
     }
 

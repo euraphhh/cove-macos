@@ -37,6 +37,7 @@ struct NotchRootView: View {
     let viewModel: NotchViewModel
     let media: MediaModule
     let shelf: ShelfModule
+    let timer: TimerModule
 
     private var expanded: Bool { viewModel.state == .expanded }
     private var showShelf: Bool { !shelf.items.isEmpty || shelf.isTargeted }
@@ -74,6 +75,7 @@ struct NotchRootView: View {
         }
         .onAppear(perform: syncLiveActivity)
         .onChange(of: media.nowPlaying) { syncLiveActivity() }
+        .onChange(of: timer.isAvailable) { syncLiveActivity() }
         .animation(Self.spring, value: viewModel.state)
         .animation(Self.spring, value: viewModel.alert)
         .animation(Self.spring, value: viewModel.hasLiveActivity)
@@ -81,12 +83,16 @@ struct NotchRootView: View {
     }
 
     private func syncLiveActivity() {
-        viewModel.hasLiveActivity = media.nowPlaying?.isPlaying == true
+        viewModel.wideLiveActivity = timer.isAvailable
+        viewModel.hasLiveActivity = timer.isAvailable || media.nowPlaying?.isPlaying == true
     }
 
     private var expandedContent: some View {
         HStack(spacing: 16) {
-            media.expandedView.frame(maxWidth: .infinity)
+            Group {
+                if timer.isAvailable { timer.expandedView } else { media.expandedView }
+            }
+            .frame(maxWidth: .infinity)
             if showShelf {
                 shelf.expandedView.frame(width: 200).transition(.island)
             }
@@ -121,7 +127,24 @@ struct NotchRootView: View {
     /// Artwork on the left wing, equalizer on the right; the physical notch sits in between.
     private var compactContent: some View {
         let h = viewModel.notchSize.height
-        return HStack(spacing: 0) {
+        return Group {
+            if timer.isAvailable { timerCompact } else { mediaCompact(h) }
+        }
+        .frame(height: h)
+    }
+
+    private var timerCompact: some View {
+        HStack(spacing: 0) {
+            Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange)
+                .frame(width: viewModel.wingWidth)
+            Spacer(minLength: viewModel.notchSize.width)
+            TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
+                .frame(width: viewModel.wingWidth)
+        }
+    }
+
+    private func mediaCompact(_ h: CGFloat) -> some View {
+        HStack(spacing: 0) {
             Artwork(url: media.nowPlaying?.artworkURL, size: h - 10)
                 .frame(width: viewModel.wingWidth)
             Spacer(minLength: viewModel.notchSize.width)
