@@ -52,7 +52,7 @@ struct OnboardingView: View {
                 Text("Music access is requested the first time a song plays.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Spacer()
-                Button("Get Started", action: onDone)
+                Button("Let's start!", action: onDone)
                     .keyboardShortcut(.defaultAction)
                     .controlSize(.large)
             }

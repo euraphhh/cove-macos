@@ -78,6 +78,12 @@ struct NotchRootView: View {
     let timer: TimerModule
     let calendar: CalendarModule
     let privacy: PrivacyMonitor
+    let downloads: DownloadModule
+
+    @AppStorage(Prefs.music) private var musicOn = true
+    @AppStorage(Prefs.shelf) private var shelfOn = true
+    @AppStorage(Prefs.privacy) private var privacyOn = true
+    @AppStorage(Prefs.bubble) private var bubbleOn = true
 
     private var expanded: Bool { viewModel.state == .expanded }
 
@@ -85,17 +91,19 @@ struct NotchRootView: View {
         var list: [Activity] = []
         if timer.isAvailable { list.append(.timer) }
         if calendar.isAvailable, calendar.next != nil { list.append(.meeting) }
-        if media.nowPlaying?.isPlaying == true { list.append(.media) }
+        if downloads.isAvailable { list.append(.download) }
+        if musicOn, media.nowPlaying?.isPlaying == true { list.append(.media) }
         return list
     }
     private var primary: Activity? { activities.first }
     /// Green for camera (which implies the mic too), orange for microphone only, like iOS.
     private var privacyColor: Color? {
-        privacy.cameraInUse ? .green : privacy.micInUse ? .orange : nil
+        guard privacyOn else { return nil }
+        return privacy.cameraInUse ? .green : privacy.micInUse ? .orange : nil
     }
     /// What the expanded island shows: the tapped bubble, else the primary activity.
     private var expandedActivity: Activity? { viewModel.focused ?? primary }
-    private var showShelf: Bool { !shelf.items.isEmpty || shelf.isTargeted }
+    private var showShelf: Bool { shelfOn && (!shelf.items.isEmpty || shelf.isTargeted) }
 
     /// Opening overshoots a little; closing is quicker and settles without bounce.
     static let openSpring = Animation.spring(response: 0.45, dampingFraction: 0.68)
@@ -159,7 +167,7 @@ struct NotchRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onDrop(of: [.fileURL], isTargeted: Binding(get: { shelf.isTargeted }, set: { shelf.isTargeted = $0 })) {
-            shelf.handleDrop($0)
+            shelfOn ? shelf.handleDrop($0) : false
         }
         .onAppear(perform: sync)
         .onChange(of: media.nowPlaying) { sync() }
@@ -168,6 +176,9 @@ struct NotchRootView: View {
         .onReceive(Timer.publish(every: 15, on: .main, in: .common).autoconnect()) { _ in sync() }
         .onChange(of: showShelf) { sync() }
         .onChange(of: viewModel.focused) { sync() }
+        .onChange(of: downloads.active) { sync() }
+        .onChange(of: musicOn) { sync() }
+        .onChange(of: bubbleOn) { sync() }
         .onChange(of: viewModel.state) { _, state in
             if state == .closed { viewModel.focused = nil }
         }
@@ -195,11 +206,11 @@ struct NotchRootView: View {
         let list = activities
         viewModel.wideLiveActivity = list.first == .timer || list.first == .meeting
         viewModel.hasLiveActivity = !list.isEmpty
-        viewModel.secondary = list.count > 1 ? list[1] : nil
+        viewModel.secondary = bubbleOn && list.count > 1 ? list[1] : nil
         if let f = viewModel.focused, !list.contains(f) { viewModel.focused = nil }
         // Expanded island hugs its content.
         let top = viewModel.notchSize.height
-        let compactCard = expandedActivity == .timer || expandedActivity == .meeting || media.nowPlaying == nil
+        let compactCard = expandedActivity != .media && (expandedActivity != nil || media.nowPlaying == nil)
         let contentHeight: CGFloat = compactCard ? 58 : 138
         let width: CGFloat = showShelf ? 640 : 440
         viewModel.expandedSize = CGSize(width: width, height: top + contentHeight + 22)
@@ -211,6 +222,7 @@ struct NotchRootView: View {
                 switch expandedActivity {
                 case .timer: timer.expandedView
                 case .meeting: calendar.expandedView
+                case .download: downloads.expandedView
                 case .media, nil: media.expandedView
                 }
             }
@@ -263,6 +275,8 @@ struct NotchRootView: View {
             case .meeting:
                 Image(systemName: "calendar").font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(calendar.next?.color ?? .blue)
+            case .download:
+                DownloadRing(fraction: downloads.active?.fraction).padding(8)
             case .media:
                 Artwork(image: media.artwork, size: size - 12, radius: (size - 12) / 2)
             }
@@ -283,6 +297,12 @@ struct NotchRootView: View {
                 } trailing: {
                     TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
                         .lineLimit(1).minimumScaleFactor(0.7)
+                }
+            } else if primary == .download {
+                wings {
+                    Image(systemName: "arrow.down.circle.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(.blue)
+                } trailing: {
+                    DownloadRing(fraction: downloads.active?.fraction).frame(width: 16, height: 16)
                 }
             } else if primary == .meeting, let meeting = calendar.next {
                 wings {

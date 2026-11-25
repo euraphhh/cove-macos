@@ -5,7 +5,7 @@ enum NotchState { case closed, peek, expanded }
 
 /// Ongoing live activities, in priority order (first one owns the island).
 enum Activity: Int, Comparable {
-    case timer, meeting, media
+    case timer, meeting, download, media
     static func < (a: Activity, b: Activity) -> Bool { a.rawValue < b.rawValue }
 }
 

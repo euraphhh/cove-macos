@@ -13,7 +13,10 @@ struct NotchGeometry {
 
     /// Screen with a notch if any, otherwise the main screen (floating island fallback).
     static var targetScreen: NSScreen? {
-        NSScreen.screens.first(where: hasNotch) ?? NSScreen.main
+        let choice = UserDefaults.standard.string(forKey: Prefs.display) ?? ""
+        if choice == "main" { return NSScreen.screens.first }  // the display with the menu bar
+        if !choice.isEmpty, let screen = NSScreen.screens.first(where: { $0.localizedName == choice }) { return screen }
+        return NSScreen.screens.first(where: hasNotch) ?? NSScreen.main
     }
 
     /// Physical notch size, or a compact pill that fits inside the menu bar on screens without one.

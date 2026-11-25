@@ -6,7 +6,7 @@ import Foundation
 enum DebugHooks {
     static let name = Notification.Name("com.euraphhh.cove.debug")
 
-    static func install(viewModel: NotchViewModel, power: PowerMonitor?, calendar: CalendarModule, timer: TimerModule, privacy: PrivacyMonitor) {
+    static func install(viewModel: NotchViewModel, power: PowerMonitor?, calendar: CalendarModule, timer: TimerModule, privacy: PrivacyMonitor, unlock: UnlockMonitor?, downloads: DownloadModule) {
         guard UserDefaults.standard.bool(forKey: "debugHooks") else { return }
         DistributedNotificationCenter.default().addObserver(forName: name, object: nil, queue: .main) { note in
             switch note.object as? String {
@@ -25,6 +25,9 @@ enum DebugHooks {
             case "noTimer": timer.cancel()
             case "camera", "mic": privacy.debugOverride = note.object as? String
             case "noPrivacy": privacy.debugOverride = nil
+            case "unlock": unlock?.play()
+            case "download": downloads.active = .init(name: "Cove-Design.zip", fraction: 0.62)
+            case "noDownload": downloads.active = nil
             case "expand": viewModel.pinned = true; viewModel.state = .expanded
             case "peek": viewModel.pinned = true; viewModel.state = .peek
             case "close": viewModel.pinned = false; viewModel.state = .closed

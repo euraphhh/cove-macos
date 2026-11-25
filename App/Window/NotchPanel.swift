@@ -4,7 +4,7 @@ import SwiftUI
 final class NotchPanel: NSPanel {
     private let viewModel: NotchViewModel
 
-    init(viewModel: NotchViewModel, media: MediaModule, shelf: ShelfModule, timer: TimerModule, calendar: CalendarModule, privacy: PrivacyMonitor) {
+    init(viewModel: NotchViewModel, media: MediaModule, shelf: ShelfModule, timer: TimerModule, calendar: CalendarModule, privacy: PrivacyMonitor, downloads: DownloadModule) {
         self.viewModel = viewModel
         // Start at the final frame so nothing animates in from the corner at launch.
         let initial = NotchGeometry.targetScreen.map(NotchGeometry.panelFrame(on:)) ?? .zero
@@ -23,7 +23,7 @@ final class NotchPanel: NSPanel {
         ignoresMouseEvents = true
         isMovable = false
 
-        let host = FirstMouseHostingView(rootView: NotchRootView(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy))
+        let host = FirstMouseHostingView(rootView: NotchRootView(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy, downloads: downloads))
         host.layer?.backgroundColor = .clear
         contentView = host
     }

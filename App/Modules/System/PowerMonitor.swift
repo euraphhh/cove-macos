@@ -31,6 +31,7 @@ final class PowerMonitor {
     private func changed() {
         guard let info = Self.read() else { return }
         defer { wasCharging = info.onAC; lastPercent = info.percent }
+        guard Prefs.on(Prefs.battery) else { return }
 
         if info.onAC != wasCharging {
             info.onAC ? showCharging(info.percent) : showUnplugged(info.percent)

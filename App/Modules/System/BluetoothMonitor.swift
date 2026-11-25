@@ -7,6 +7,8 @@ final class BluetoothMonitor: NSObject {
     private let viewModel: NotchViewModel
     private var connectNote: IOBluetoothUserNotification?
     private var startedAt = Date()
+    /// Devices already connected at launch: their replayed connect events are not real connections.
+    private var connectedAtLaunch = Set<String>()
 
     init(viewModel: NotchViewModel) {
         self.viewModel = viewModel
@@ -14,13 +16,16 @@ final class BluetoothMonitor: NSObject {
 
     func start() {
         startedAt = Date()
+        let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []
+        connectedAtLaunch = Set(paired.filter { $0.isConnected() }.compactMap(\.addressString))
         connectNote = IOBluetoothDevice.register(forConnectNotifications: self,
                                                  selector: #selector(connected(_:device:)))
     }
 
     @objc private func connected(_ note: IOBluetoothUserNotification, device: IOBluetoothDevice) {
         // Registration replays already-connected devices; ignore those at launch.
-        guard Date().timeIntervalSince(startedAt) > 3 else { return }
+        if let address = device.addressString, connectedAtLaunch.remove(address) != nil { return }
+        guard Date().timeIntervalSince(startedAt) > 3, Prefs.on(Prefs.headphones) else { return }
         let isAudio = device.deviceClassMajor == kBluetoothDeviceClassMajorAudio
         let name = device.name ?? ""
         guard isAudio || name.localizedCaseInsensitiveContains("airpods") else { return }

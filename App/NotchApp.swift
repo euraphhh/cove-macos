@@ -22,6 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let timer = TimerModule()
     private let calendar = CalendarModule()
     private let privacy = PrivacyMonitor()
+    private let downloads = DownloadModule()
+    private var focus: FocusMonitor?
+    private var unlock: UnlockMonitor?
     private var menuBar: MenuBarController?
     private var onboarding: OnboardingController?
     private var power: PowerMonitor?
@@ -29,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var volume: VolumeMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy)
+        Prefs.register()
+        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy, downloads: downloads)
         self.panel = panel
         panel.reposition()
         panel.orderFrontRegardless()
@@ -38,6 +42,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         swipe = SwipeHandler(panel: panel, viewModel: viewModel, media: media)
         media.start()
         privacy.start()
+        downloads.onFinish = { [viewModel] _ in
+            viewModel.show(IslandAlert(icon: "checkmark.circle.fill", iconColor: .blue, text: "Done", textColor: .blue))
+        }
+        downloads.start()
+        focus = FocusMonitor(viewModel: viewModel)
+        focus?.start()
+        unlock = UnlockMonitor(viewModel: viewModel)
+        unlock?.start()
         calendar.onStart = { [viewModel] meeting in
             viewModel.show(IslandAlert(icon: "calendar", iconColor: meeting.color, text: "Now", textColor: meeting.color), for: 4)
         }
@@ -52,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onboarding.showIfNeeded()
         power = PowerMonitor(viewModel: viewModel)
         power?.start()
-        DebugHooks.install(viewModel: viewModel, power: power, calendar: calendar, timer: timer, privacy: privacy)
+        DebugHooks.install(viewModel: viewModel, power: power, calendar: calendar, timer: timer, privacy: privacy, unlock: unlock, downloads: downloads)
         bluetooth = BluetoothMonitor(viewModel: viewModel)
         bluetooth?.start()
         volume = VolumeMonitor(viewModel: viewModel)
@@ -61,6 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MediaKeyInterceptor.shared.viewModel = viewModel
         MediaKeyInterceptor.shared.start()
 
+        NotificationCenter.default.addObserver(forName: Prefs.displayChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.panel?.reposition()
+        }
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil, queue: .main
