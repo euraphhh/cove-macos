@@ -133,8 +133,9 @@ final class ShelfModule: NotchModule {
                 }
             } else if provider.canLoadObject(ofClass: NSImage.self) {
                 accepted = true
-                _ = provider.loadObject(ofClass: NSImage.self) { [weak self] image, _ in
-                    guard let image else { return }
+                // NSImage isn't bridgeable, so this uses the NSItemProviderReading overload.
+                _ = provider.loadObject(ofClass: NSImage.self) { [weak self] (object: NSItemProviderReading?, _: Error?) in
+                    guard let image = object as? NSImage else { return }
                     DispatchQueue.main.async { self?.addImage(image) }
                 }
             } else if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
