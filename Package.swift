@@ -13,6 +13,11 @@ let package = Package(
             dependencies: [.product(name: "Sparkle", package: "Sparkle")],
             path: "App",
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
-        )
+        ),
+        .testTarget(
+            name: "CoveTests",
+            dependencies: ["Cove"],
+            path: "Tests/CoveTests"
+        ),
     ]
 )

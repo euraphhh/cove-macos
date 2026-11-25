@@ -4,6 +4,7 @@ import Observation
 import UniformTypeIdentifiers
 
 /// Watches ~/Downloads for in-progress browser downloads (Safari .download, Chrome .crdownload, Firefox .part).
+/// Event driven: a folder watcher notices new partial files, and a 1 s timer (for progress) runs only while one exists.
 @Observable
 final class DownloadModule: NotchModule {
     struct Item: Equatable {
@@ -17,16 +18,32 @@ final class DownloadModule: NotchModule {
     var active: Item?
     var onFinish: ((String) -> Void)?
     var isAvailable: Bool { active != nil }
-    private var timer: Timer?
+    @ObservationIgnored private var watcher: FolderWatcher?
+    @ObservationIgnored private var progressTimer: Timer?
     private let folder = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
     private static let partialSuffixes = [".download", ".crdownload", ".part"]
 
     func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.poll() }
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.configure()
+        }
+        configure()
+    }
+
+    /// Opening the folder triggers the macOS permission prompt, so only do it while the feature is on.
+    private func configure() {
+        if Prefs.on(Prefs.downloads) {
+            guard watcher == nil else { return }
+            watcher = FolderWatcher(url: folder) { [weak self] in self?.poll() }
+            if watcher != nil { poll() }
+        } else if watcher != nil {
+            watcher = nil
+            stopProgressTimer()
+            if active != nil { active = nil }
+        }
     }
 
     private func poll() {
-        guard Prefs.on(Prefs.downloads) else { return }
         let entries = (try? FileManager.default.contentsOfDirectory(
             at: folder, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles])) ?? []
         let partial = entries
@@ -36,9 +53,23 @@ final class DownloadModule: NotchModule {
         let item = partial.map { Item(name: Self.displayName($0), fraction: Self.safariProgress($0)) }
         if item == nil, let finished = active?.name { onFinish?(finished) }
         if item != active { active = item }
+
+        if item != nil {
+            if progressTimer == nil {
+                progressTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.poll() }
+            }
+        } else {
+            stopProgressTimer()
+        }
     }
 
-    private static func displayName(_ url: URL) -> String {
+    private func stopProgressTimer() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+    }
+
+    /// File name without the browser's partial-download suffix.
+    static func displayName(_ url: URL) -> String {
         var name = url.lastPathComponent
         for suffix in partialSuffixes where name.hasSuffix(suffix) { name.removeLast(suffix.count) }
         return name
@@ -59,6 +90,20 @@ final class DownloadModule: NotchModule {
 
     var compactView: some View { EmptyView() }
     var expandedView: some View { DownloadExpandedView(downloads: self) }
+}
+
+extension DownloadModule: ActivityProviding {
+    var activityEntry: ActivityEntry {
+        ActivityEntry(
+            activity: .download,
+            isLive: { self.isAvailable },
+            leading: {
+                AnyView(Image(systemName: "arrow.down.circle.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(.blue))
+            },
+            trailing: { AnyView(DownloadRing(fraction: self.active?.fraction).frame(width: 16, height: 16)) },
+            bubble: { _ in AnyView(DownloadRing(fraction: self.active?.fraction).padding(8)) },
+            expanded: { AnyView(self.expandedView) })
+    }
 }
 
 /// Ring that fills with progress, or spins when the total is unknown.

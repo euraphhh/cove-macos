@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let calendar = CalendarModule()
     private let privacy = PrivacyMonitor()
     private let downloads = DownloadModule()
+    private let registry = ActivityRegistry()
     private var focus: FocusMonitor?
     private var unlock: UnlockMonitor?
     private var screenshots: ScreenshotWatcher?
@@ -35,7 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Prefs.register()
-        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy, downloads: downloads)
+        // Priority order comes from `Activity`, not from registration order.
+        registry.register(timer)
+        registry.register(calendar)
+        registry.register(downloads)
+        registry.register(media)
+        let panel = NotchPanel(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy, registry: registry)
         self.panel = panel
         panel.reposition()
         panel.orderFrontRegardless()

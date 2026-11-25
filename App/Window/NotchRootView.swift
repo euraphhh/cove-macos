@@ -78,7 +78,7 @@ struct NotchRootView: View {
     let timer: TimerModule
     let calendar: CalendarModule
     let privacy: PrivacyMonitor
-    let downloads: DownloadModule
+    let registry: ActivityRegistry
 
     @AppStorage(Prefs.music) private var musicOn = true
     @AppStorage(Prefs.shelf) private var shelfOn = true
@@ -87,22 +87,17 @@ struct NotchRootView: View {
 
     private var expanded: Bool { viewModel.state == .expanded }
 
-    private var activities: [Activity] {
-        var list: [Activity] = []
-        if timer.isAvailable { list.append(.timer) }
-        if calendar.isAvailable, calendar.next != nil { list.append(.meeting) }
-        if downloads.isAvailable { list.append(.download) }
-        if musicOn, media.nowPlaying?.isPlaying == true { list.append(.media) }
-        return list
-    }
-    private var primary: Activity? { activities.first }
+    /// Live activities, highest priority first (the first one owns the island).
+    private var activities: [ActivityEntry] { registry.live }
+    private var liveIDs: [Activity] { activities.map(\.activity) }
+    private var primary: ActivityEntry? { activities.first }
     /// Green for camera (which implies the mic too), orange for microphone only, like iOS.
     private var privacyColor: Color? {
         guard privacyOn else { return nil }
         return privacy.cameraInUse ? .green : privacy.micInUse ? .orange : nil
     }
     /// What the expanded island shows: the tapped bubble, else the primary activity.
-    private var expandedActivity: Activity? { viewModel.focused ?? primary }
+    private var expandedEntry: ActivityEntry? { registry.entry(for: viewModel.focused) ?? primary }
     private var showShelf: Bool { shelfOn && (!shelf.items.isEmpty || shelf.isTargeted) }
 
     /// Opening overshoots a little; closing is quicker and settles without bounce.
@@ -166,17 +161,15 @@ struct NotchRootView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onDrop(of: [.fileURL], isTargeted: Binding(get: { shelf.isTargeted }, set: { shelf.isTargeted = $0 })) {
+        .onDrop(of: ShelfModule.acceptedTypes, isTargeted: Binding(get: { shelf.isTargeted }, set: { shelf.isTargeted = $0 })) {
             shelfOn ? shelf.handleDrop($0) : false
         }
         .onAppear(perform: sync)
         .onChange(of: media.nowPlaying) { sync() }
-        .onChange(of: timer.isAvailable) { sync() }
-        .onChange(of: calendar.next) { sync() }
+        .onChange(of: liveIDs) { sync() }
         .onReceive(Timer.publish(every: 15, on: .main, in: .common).autoconnect()) { _ in sync() }
         .onChange(of: showShelf) { sync() }
         .onChange(of: viewModel.focused) { sync() }
-        .onChange(of: downloads.active) { sync() }
         .onChange(of: musicOn) { sync() }
         .onChange(of: bubbleOn) { sync() }
         .onChange(of: viewModel.state) { _, state in
@@ -203,16 +196,16 @@ struct NotchRootView: View {
     }
 
     private func sync() {
-        let list = activities
-        viewModel.wideLiveActivity = list.first == .timer || list.first == .meeting
+        let list = liveIDs
+        viewModel.wideLiveActivity = activities.first?.wide ?? false
         viewModel.hasLiveActivity = !list.isEmpty
         viewModel.secondary = bubbleOn && list.count > 1 ? list[1] : nil
         if let f = viewModel.focused, !list.contains(f) { viewModel.focused = nil }
         // Expanded island hugs its content.
         let top = viewModel.notchSize.height
-        let home = expandedActivity == nil && (media.nowPlaying == nil || !musicOn)
-        let compactCard = expandedActivity != nil && expandedActivity != .media
-        let contentHeight: CGFloat = home ? 108 : compactCard ? 58 : 138
+        let home = expandedEntry == nil && (media.nowPlaying == nil || !musicOn)
+        // With no live activity the expanded island shows the (paused) player, which is the tallest card.
+        let contentHeight: CGFloat = home ? 108 : (expandedEntry?.expandedHeight ?? 138)
         let width: CGFloat = (showShelf ? 200 : 0) + (home ? 500 : 440)
         viewModel.expandedSize = CGSize(width: width, height: top + contentHeight + 22)
     }
@@ -220,14 +213,12 @@ struct NotchRootView: View {
     private var expandedContent: some View {
         HStack(spacing: 18) {
             Group {
-                switch expandedActivity {
-                case .timer: timer.expandedView
-                case .meeting: calendar.expandedView
-                case .download: downloads.expandedView
-                case .media: media.expandedView
-                case nil:
-                    if media.nowPlaying != nil && musicOn { media.expandedView }
-                    else { HomeView(calendar: calendar, timer: timer) }
+                if let entry = expandedEntry {
+                    entry.expanded()
+                } else if media.nowPlaying != nil && musicOn {
+                    media.expandedView
+                } else {
+                    HomeView(calendar: calendar, timer: timer)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -271,25 +262,8 @@ struct NotchRootView: View {
         let size = viewModel.bubbleSize
         return ZStack {
             Circle().fill(.black)
-            switch activity {
-            case .timer:
-                TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-                    let left = timer.duration > 0 ? timer.remaining(at: ctx.date) / timer.duration : 0
-                    ZStack {
-                        Circle().stroke(.orange.opacity(0.25), lineWidth: 2.5)
-                        Circle().trim(from: 0, to: left).stroke(.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                        Image(systemName: "timer").font(.system(size: 9, weight: .bold)).foregroundStyle(.orange)
-                    }
-                    .padding(7)
-                }
-            case .meeting:
-                Image(systemName: "calendar").font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(calendar.next?.color ?? .blue)
-            case .download:
-                DownloadRing(fraction: downloads.active?.fraction).padding(8)
-            case .media:
-                Artwork(image: media.artwork, size: size - 12, radius: (size - 12) / 2)
+            if let entry = registry.entry(for: activity) {
+                entry.bubble(size)
             }
         }
         .frame(width: size, height: size)
@@ -302,32 +276,8 @@ struct NotchRootView: View {
 
     private var compactContent: some View {
         Group {
-            if primary == .timer {
-                wings {
-                    Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange)
-                } trailing: {
-                    TimerCountdownText(timer: timer, font: .system(size: 13, weight: .semibold))
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                }
-            } else if primary == .download {
-                wings {
-                    Image(systemName: "arrow.down.circle.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(.blue)
-                } trailing: {
-                    DownloadRing(fraction: downloads.active?.fraction).frame(width: 16, height: 16)
-                }
-            } else if primary == .meeting, let meeting = calendar.next {
-                wings {
-                    Image(systemName: "calendar").font(.system(size: 14, weight: .semibold)).foregroundStyle(meeting.color)
-                } trailing: {
-                    MeetingCountdownText(meeting: meeting, font: .system(size: 13, weight: .semibold))
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                }
-            } else {
-                wings {
-                    media.compactView
-                } trailing: {
-                    EqualizerView(isPlaying: media.nowPlaying?.isPlaying == true, color: media.tint)
-                }
+            if let entry = primary {
+                wings { entry.leading() } trailing: { entry.trailing() }
             }
         }
     }

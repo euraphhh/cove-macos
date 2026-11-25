@@ -65,6 +65,40 @@ final class TimerModule: NotchModule {
     var expandedView: some View { TimerExpandedView(timer: self) }
 }
 
+extension TimerModule: ActivityProviding {
+    var activityEntry: ActivityEntry {
+        ActivityEntry(
+            activity: .timer, wide: true,
+            isLive: { self.isAvailable },
+            leading: {
+                AnyView(Image(systemName: "timer").font(.system(size: 14, weight: .semibold)).foregroundStyle(.orange))
+            },
+            trailing: {
+                AnyView(TimerCountdownText(timer: self, font: .system(size: 13, weight: .semibold))
+                    .lineLimit(1).minimumScaleFactor(0.7))
+            },
+            bubble: { _ in AnyView(TimerBubble(timer: self)) },
+            expanded: { AnyView(self.expandedView) })
+    }
+}
+
+/// Ring that drains as the timer runs, shown in the detached bubble.
+struct TimerBubble: View {
+    let timer: TimerModule
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
+            let left = timer.duration > 0 ? timer.remaining(at: ctx.date) / timer.duration : 0
+            ZStack {
+                Circle().stroke(.orange.opacity(0.25), lineWidth: 2.5)
+                Circle().trim(from: 0, to: left).stroke(.orange, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                Image(systemName: "timer").font(.system(size: 9, weight: .bold)).foregroundStyle(.orange)
+            }
+            .padding(7)
+        }
+    }
+}
+
 struct TimerCountdownText: View {
     let timer: TimerModule
     var font: Font
