@@ -1,3 +1,4 @@
+import AudioToolbox
 import CoreAudio
 import Foundation
 
@@ -59,6 +60,22 @@ enum AudioOutputs {
         var sys = address(kAudioHardwarePropertyDefaultSystemOutputDevice)
         _ = AudioObjectSetPropertyData(system, &sys, 0, nil, size, &id)
         return ok
+    }
+
+    /// Volume (0...1) of the default output device, or nil if it has no settable volume.
+    static var volume: Float? {
+        guard let id = currentID else { return nil }
+        var addr = address(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, scope: kAudioDevicePropertyScopeOutput)
+        var value = Float32(0)
+        var size = UInt32(MemoryLayout<Float32>.size)
+        return AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &value) == noErr ? value : nil
+    }
+
+    static func setVolume(_ value: Float) {
+        guard let id = currentID else { return }
+        var addr = address(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, scope: kAudioDevicePropertyScopeOutput)
+        var v = min(max(value, 0), 1)
+        _ = AudioObjectSetPropertyData(id, &addr, 0, nil, UInt32(MemoryLayout<Float32>.size), &v)
     }
 
     private static func hasOutput(_ id: AudioObjectID) -> Bool {

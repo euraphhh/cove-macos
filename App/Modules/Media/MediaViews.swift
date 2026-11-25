@@ -158,9 +158,10 @@ struct RoutePicker: View {
     @Binding var showingRoutes: Bool
     @State private var outputs = AudioOutputs.all()
     @State private var current = AudioOutputs.currentID
+    @State private var volume = Double(AudioOutputs.volume ?? 0.5)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Audio Output").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white.opacity(0.55))
                 Spacer()
@@ -169,12 +170,14 @@ struct RoutePicker: View {
                 }
                 .buttonStyle(PressScaleStyle())
             }
+            VolumePill(value: $volume) { AudioOutputs.setVolume(Float($0)) }
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 2) {
                     ForEach(outputs) { output in
                         Button {
                             AudioOutputs.select(output)
                             current = output.id
+                            volume = Double(AudioOutputs.volume ?? Float(volume))
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showingRoutes = false }
                             }
@@ -197,7 +200,11 @@ struct RoutePicker: View {
                 }
             }
         }
-        .onAppear { outputs = AudioOutputs.all(); current = AudioOutputs.currentID }
+        .onAppear {
+            outputs = AudioOutputs.all()
+            current = AudioOutputs.currentID
+            volume = Double(AudioOutputs.volume ?? 0.5)
+        }
     }
 }
 
@@ -233,5 +240,50 @@ struct ScrubBar: View {
             .animation(.spring(response: 0.25, dampingFraction: 0.8), value: active)
         }
         .frame(height: 16)
+    }
+}
+
+/// Thick pill slider like the iOS volume control: fills white, speaker glyph inside.
+struct VolumePill: View {
+    @Binding var value: Double
+    var onChange: (Double) -> Void
+    @State private var dragging = false
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.16))
+                Rectangle().fill(.white).frame(width: w * value)
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(value > 0.12 ? .black.opacity(0.55) : .white.opacity(0.8))
+                    .contentTransition(.symbolEffect(.replace))
+                    .padding(.leading, 12)
+            }
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+            .scaleEffect(dragging ? 1.03 : 1)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { g in
+                        dragging = true
+                        value = min(max(g.location.x / w, 0), 1)
+                        onChange(value)
+                    }
+                    .onEnded { _ in dragging = false }
+            )
+            .animation(.spring(response: 0.25, dampingFraction: 0.75), value: dragging)
+        }
+        .frame(height: 30)
+    }
+
+    private var icon: String {
+        switch value {
+        case 0: "speaker.slash.fill"
+        case ..<0.34: "speaker.wave.1.fill"
+        case ..<0.67: "speaker.wave.2.fill"
+        default: "speaker.wave.3.fill"
+        }
     }
 }

@@ -70,6 +70,7 @@ struct NotchRootView: View {
     let shelf: ShelfModule
     let timer: TimerModule
     let calendar: CalendarModule
+    let privacy: PrivacyMonitor
 
     private var expanded: Bool { viewModel.state == .expanded }
 
@@ -81,6 +82,10 @@ struct NotchRootView: View {
         return list
     }
     private var primary: Activity? { activities.first }
+    /// Green for camera (which implies the mic too), orange for microphone only, like iOS.
+    private var privacyColor: Color? {
+        privacy.cameraInUse ? .green : privacy.micInUse ? .orange : nil
+    }
     /// What the expanded island shows: the tapped bubble, else the primary activity.
     private var expandedActivity: Activity? { viewModel.focused ?? primary }
     private var showShelf: Bool { !shelf.items.isEmpty || shelf.isTargeted }
@@ -126,6 +131,17 @@ struct NotchRootView: View {
                         .transition(.bubble)
                 }
             }
+            .overlay(alignment: .trailing) {
+                if let color = privacyColor, !expanded {
+                    // Sits just right of the island (or of the bubble), vertically centered like iOS.
+                    let bubbleSpace = viewModel.secondary != nil ? viewModel.bubbleSize + NotchViewModel.bubbleGap : 0
+                    // Black backing keeps the dot visible over any wallpaper or menu bar icon.
+                    Circle().fill(.black).frame(width: 14, height: 14)
+                        .overlay(Circle().fill(color).frame(width: 6, height: 6))
+                        .offset(x: bubbleSpace + 11)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -146,6 +162,7 @@ struct NotchRootView: View {
         .animation(Self.spring, value: viewModel.alert)
         .animation(Self.spring, value: viewModel.hasLiveActivity)
         .animation(Self.spring, value: viewModel.secondary)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: privacyColor)
         .animation(Self.spring, value: viewModel.expandedSize)
         .animation(.spring(response: 0.22, dampingFraction: 0.6), value: viewModel.isPressed)
         .animation(.spring(response: 0.3, dampingFraction: 0.5), value: viewModel.nudgeOffset)
