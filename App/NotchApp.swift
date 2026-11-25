@@ -38,6 +38,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bluetooth?.start()
         volume = VolumeMonitor(viewModel: viewModel)
         volume?.start()
+        MediaKeyInterceptor.shared.volume = volume
+        MediaKeyInterceptor.shared.viewModel = viewModel
+        MediaKeyInterceptor.shared.start()
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,

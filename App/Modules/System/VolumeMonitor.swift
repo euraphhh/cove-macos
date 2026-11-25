@@ -41,18 +41,47 @@ final class VolumeMonitor {
         }
     }
 
-    private func showVolume() {
+    /// Changes volume by `delta` (unmuting first). Returns false if the device has no settable volume.
+    func step(_ delta: Float) -> Bool {
+        guard var volume = readVolume() else { return false }
+        if isMuted { _ = setMute(false) }
+        volume = min(max(volume + delta, 0), 1)
+        var size = UInt32(MemoryLayout<Float32>.size)
+        var a = Self.address(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, scope: kAudioDevicePropertyScopeOutput)
+        let ok = AudioObjectSetPropertyData(device, &a, 0, nil, size, &volume) == noErr
+        if ok { showVolume() } // also covers hitting 0%/100% where no change fires
+        return ok
+    }
+
+    func toggleMute() -> Bool {
+        let ok = setMute(!isMuted)
+        if ok { showVolume() }
+        return ok
+    }
+
+    private var isMuted: Bool {
+        var muted = UInt32(0)
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        var m = Self.address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeOutput)
+        return AudioObjectGetPropertyData(device, &m, 0, nil, &size, &muted) == noErr && muted != 0
+    }
+
+    private func setMute(_ mute: Bool) -> Bool {
+        var value = UInt32(mute ? 1 : 0)
+        var m = Self.address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeOutput)
+        return AudioObjectSetPropertyData(device, &m, 0, nil, UInt32(MemoryLayout<UInt32>.size), &value) == noErr
+    }
+
+    private func readVolume() -> Float32? {
         var volume = Float32(0)
         var size = UInt32(MemoryLayout<Float32>.size)
         var a = Self.address(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, scope: kAudioDevicePropertyScopeOutput)
-        guard AudioObjectGetPropertyData(device, &a, 0, nil, &size, &volume) == noErr else { return }
+        return AudioObjectGetPropertyData(device, &a, 0, nil, &size, &volume) == noErr ? volume : nil
+    }
 
-        var muted = UInt32(0)
-        size = UInt32(MemoryLayout<UInt32>.size)
-        var m = Self.address(kAudioDevicePropertyMute, scope: kAudioDevicePropertyScopeOutput)
-        _ = AudioObjectGetPropertyData(device, &m, 0, nil, &size, &muted)
-
-        let level = muted != 0 ? 0 : Double(volume)
+    private func showVolume() {
+        guard let volume = readVolume() else { return }
+        let level = isMuted ? 0 : Double(volume)
         let icon = switch level {
         case 0: "speaker.slash.fill"
         case ..<0.34: "speaker.wave.1.fill"

@@ -24,5 +24,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSAppleEventsUsageDescription</key><string>Cove shows and controls what is playing in Spotify and Music.</string>
 </dict></plist>
 PLIST
-codesign --force --deep --sign - "$APP"
+# Stable local identity keeps TCC permissions across rebuilds; falls back to ad-hoc (CI).
+IDENTITY="-"
+security find-identity -p codesigning 2>/dev/null | grep -q "Cove Dev" && IDENTITY="Cove Dev"
+codesign --force --deep --sign "$IDENTITY" "$APP"
+echo "Signed with: $IDENTITY"
 echo "Built $APP"
