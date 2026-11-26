@@ -27,15 +27,23 @@ struct NotchGeometry {
             let menuBar = max(screen.frame.maxY - screen.visibleFrame.maxY, 24)
             return CGSize(width: 110, height: menuBar - 4)
         }
-        let width = screen.frame.width - left.width - right.width
-        return CGSize(width: width, height: screen.safeAreaInsets.top)
+        return CGSize(width: right.minX - left.maxX, height: screen.safeAreaInsets.top)
+    }
+
+    /// Horizontal center of the physical notch. It isn't always the screen's midX: on a 1470pt-wide
+    /// screen the notch spans 646–825, so its center is 735.5 and centering on 735 is 1px off.
+    static func notchCenterX(on screen: NSScreen) -> CGFloat {
+        guard hasNotch(screen), let left = screen.auxiliaryTopLeftArea, let right = screen.auxiliaryTopRightArea else {
+            return screen.frame.midX
+        }
+        return (left.maxX + right.minX) / 2
     }
 
     static func panelFrame(on screen: NSScreen) -> NSRect {
         let s = expandedSize
         // When simulating on a notched Mac, move aside so the physical notch doesn't hide the pill.
         let shift: CGFloat = simulateNoNotch && screen.safeAreaInsets.top > 0 ? 350 : 0
-        return NSRect(x: screen.frame.midX - s.width / 2 + shift,
+        return NSRect(x: notchCenterX(on: screen) - s.width / 2 + shift,
                       y: screen.frame.maxY - s.height,
                       width: s.width, height: s.height)
     }

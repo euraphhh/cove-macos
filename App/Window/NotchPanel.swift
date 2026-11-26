@@ -15,6 +15,7 @@ final class NotchPanel: NSPanel {
         super.init(contentRect: initial,
                    styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered, defer: false)
+        if let screen = NotchGeometry.targetScreen { alignToNotch(on: screen) }
         level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 1)
         collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         isOpaque = false
@@ -36,6 +37,13 @@ final class NotchPanel: NSPanel {
         viewModel.notchSize = NotchGeometry.notchSize(on: screen)
         viewModel.hasNotch = NotchGeometry.hasNotch(screen)
         setFrame(NotchGeometry.panelFrame(on: screen), display: true)
+        alignToNotch(on: screen)
+    }
+
+    /// Window origins snap to whole points, but the notch center can sit on a half point
+    /// (e.g. 735.5 on a 1470pt screen). Shift the drawing inside the panel by the remainder.
+    private func alignToNotch(on screen: NSScreen) {
+        viewModel.centerOffset = NotchGeometry.notchCenterX(on: screen) - frame.midX
     }
 }
 

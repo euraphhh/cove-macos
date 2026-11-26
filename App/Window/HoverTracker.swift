@@ -50,7 +50,7 @@ final class HoverTracker {
         guard let panel, !viewModel.pinned else { return }
         if menuOpen && viewModel.state == .expanded { return }
         let p = NSEvent.mouseLocation
-        let frame = panel.frame
+        let frame = panel.frame.offsetBy(dx: viewModel.centerOffset, dy: 0)
         let notch = viewModel.closedSize
         // Active area: notch rect when closed, the visible expanded shape when open.
         let active: NSRect

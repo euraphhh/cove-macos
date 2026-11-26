@@ -163,6 +163,16 @@ struct NotchRootView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .offset(x: viewModel.centerOffset)
+        .overlay(alignment: .top) {
+            if viewModel.showAlignmentGuide {
+                // 1pt outside the notch rect: if aligned, the red line is equally thin on both sides.
+                Rectangle().stroke(.red, lineWidth: 1)
+                    .frame(width: viewModel.notchSize.width + 2, height: viewModel.notchSize.height + 1)
+                    .offset(x: viewModel.centerOffset, y: -0.5)
+                    .allowsHitTesting(false)
+            }
+        }
         .onDrop(of: ShelfModule.acceptedTypes, isTargeted: Binding(get: { shelf.isTargeted }, set: { shelf.isTargeted = $0 })) {
             shelfOn ? shelf.handleDrop($0) : false
         }

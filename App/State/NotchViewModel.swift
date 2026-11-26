@@ -33,6 +33,10 @@ final class NotchViewModel {
     /// Opened from the keyboard shortcut: stays open until the cursor visits it or a timeout.
     var openedByKeyboard = false
 
+    /// Sub-point correction so the island is centered on the physical notch, not just the window.
+    var centerOffset: CGFloat = 0
+    /// Debug only: draw a thin outline just outside the notch to check alignment by eye.
+    var showAlignmentGuide = false
     /// Debug only: keep the current state regardless of the cursor.
     var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)
