@@ -59,7 +59,7 @@ final class PowerMonitor {
         guard Prefs.on(Prefs.lowPower) else { return }
         let percent = Self.read()?.percent ?? 50
         viewModel.show(IslandAlert(icon: Self.batteryIcon(percent), iconColor: on ? .yellow : .white,
-                                   text: on ? "On" : "Off", textColor: on ? .yellow : .white))
+                                   text: on ? String(localized: "On") : String(localized: "Off"), textColor: on ? .yellow : .white))
     }
 
     /// Like iOS: red battery and a longer, more noticeable alert.

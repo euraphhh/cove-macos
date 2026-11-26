@@ -11,6 +11,7 @@ BINDIR="$(swift build -c release --arch arm64 --show-bin-path)"
 cp "$BINDIR/Cove" "$APP/Contents/MacOS/Cove"
 mkdir -p "$APP/Contents/Frameworks" "$APP/Contents/Resources"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 ditto "$BINDIR/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -24,6 +25,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleLocalizations</key><array><string>en</string><string>pt-BR</string></array>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>SUFeedURL</key><string>https://euraphhh.github.io/cove-macos/appcast.xml</string>
   <key>SUPublicEDKey</key><string>bnz+2yE/9pP72KHPNN/s0YzUvv3e+aHtXdon+7zTREA=</string>

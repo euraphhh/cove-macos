@@ -61,14 +61,14 @@ struct OnboardingView: View {
         .frame(width: 480)
     }
 
-    private func tip(_ icon: String, _ text: String) -> some View {
+    private func tip(_ icon: String, _ text: LocalizedStringKey) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon).frame(width: 22).foregroundStyle(.tint)
             Text(text)
         }
     }
 
-    private func option(_ title: String, detail: String, isOn: Binding<Bool>, apply: @escaping (Bool) -> Void) -> some View {
+    private func option(_ title: LocalizedStringKey, detail: LocalizedStringKey, isOn: Binding<Bool>, apply: @escaping (Bool) -> Void) -> some View {
         Toggle(isOn: Binding(get: { isOn.wrappedValue }, set: { isOn.wrappedValue = $0; apply($0) })) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -100,7 +100,7 @@ final class OnboardingController {
                 self?.window?.close()
             }
             let w = NSWindow(contentViewController: NSHostingController(rootView: view))
-            w.title = "Welcome to Cove"
+            w.title = String(localized: "Welcome to Cove")
             w.styleMask = [.titled, .closable, .fullSizeContentView]
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden

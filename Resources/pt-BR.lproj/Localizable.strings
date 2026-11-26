@@ -1,0 +1,101 @@
+/* Menu bar */
+"Timer" = "Timer";
+"%lld min" = "%lld min";
+"Cancel Timer" = "Cancelar Timer";
+"Show Upcoming Meetings" = "Mostrar Próximas Reuniões";
+"Launch at Login" = "Abrir ao Iniciar Sessão";
+"Replace System Volume/Brightness HUD" = "Substituir HUD de Volume/Brilho";
+"Settings…" = "Ajustes…";
+"Welcome…" = "Boas-vindas…";
+"Send Feedback…" = "Enviar Feedback…";
+"Check for Updates…" = "Buscar Atualizações…";
+"Quit Cove" = "Encerrar Cove";
+"Cove Settings" = "Ajustes do Cove";
+
+/* Island alerts */
+"Done" = "Pronto";
+"Now" = "Agora";
+"On" = "Ativo";
+"Off" = "Desativado";
+"Online" = "Online";
+"Offline" = "Offline";
+"Copied" = "Copiado";
+"None" = "Nada";
+"Failed" = "Falhou";
+"Meeting" = "Reunião";
+
+/* Music */
+"Nothing playing" = "Nada tocando";
+"Audio Output" = "Saída de Áudio";
+
+/* Timer / meetings / downloads */
+"Join" = "Entrar";
+"Downloading…" = "Baixando…";
+
+/* Shelf */
+"Drop files, links or text" = "Solte arquivos, links ou texto";
+"Clear Shelf" = "Limpar Shelf";
+"Copy" = "Copiar";
+"Open" = "Abrir";
+"Remove" = "Remover";
+"Show in Finder" = "Mostrar no Finder";
+"Copy Text (OCR)" = "Copiar Texto (OCR)";
+"Convert to PNG" = "Converter para PNG";
+"Convert to JPEG" = "Converter para JPEG";
+"Compress to Zip" = "Compactar em Zip";
+"AirDrop…" = "AirDrop…";
+
+/* Home view */
+"5 min" = "5 min";
+"25 min" = "25 min";
+"Dark Mode" = "Escuro";
+"Capture" = "Capturar";
+"No more events today." = "Nenhum evento restante hoje.";
+"Turn on meetings in the menu to see today's events." = "Ative as reuniões no menu para ver os eventos de hoje.";
+
+/* Welcome */
+"Welcome to Cove" = "Boas-vindas ao Cove";
+"A Dynamic Island for your Mac's notch." = "Uma Dynamic Island para o notch do seu Mac.";
+"Hover the notch to peek, click to expand." = "Passe o mouse no notch para espiar e clique para expandir.";
+"Play music in Spotify or Apple Music to see it live." = "Toque música no Spotify ou no Apple Music para ver ao vivo.";
+"Swipe two fingers on the island to skip tracks." = "Deslize dois dedos na ilha para trocar de faixa.";
+"Drag files onto the notch to hold them for later." = "Arraste arquivos até o notch para guardá-los por um tempo.";
+"Timer, settings and more live in the menu bar icon." = "Timer, ajustes e mais ficam no ícone da barra de menus.";
+"Optional" = "Opcional";
+"Open at login" = "Abrir ao iniciar sessão";
+"Start Cove automatically when you log in." = "Abre o Cove automaticamente quando você inicia a sessão.";
+"Upcoming meetings" = "Próximas reuniões";
+"Countdown and Join button before calls. Asks for Calendar access." = "Contagem regressiva e botão Entrar antes das chamadas. Pede acesso ao Calendário.";
+"Volume & brightness HUD" = "HUD de volume e brilho";
+"Replace the macOS volume/brightness overlay. Asks for Accessibility." = "Substitui o indicador de volume/brilho do macOS. Pede acesso à Acessibilidade.";
+"Music access is requested the first time a song plays." = "O acesso à música é pedido na primeira vez que uma música tocar.";
+"Let's start!" = "Vamos lá!";
+
+/* Settings */
+"General" = "Geral";
+"Launch at login" = "Abrir ao iniciar sessão";
+"Show on" = "Mostrar em";
+"Automatic" = "Automático";
+"Main display" = "Tela principal";
+"Automatically check for updates" = "Buscar atualizações automaticamente";
+"Live activities" = "Atividades ao vivo";
+"Music" = "Música";
+"Show a second activity as a bubble" = "Mostrar uma segunda atividade como bolinha";
+"Downloads" = "Downloads";
+"macOS asks once for access to your Downloads folder." = "O macOS pede uma vez acesso à sua pasta Downloads.";
+"Alerts" = "Alertas";
+"Charger and low battery" = "Carregador e bateria fraca";
+"Low Power Mode" = "Modo Pouca Energia";
+"Online / offline" = "Online / offline";
+"New screenshots (added to the Shelf)" = "Novas capturas de tela (vão para o Shelf)";
+"Headphones connected" = "Fones conectados";
+"Unlock animation" = "Animação de desbloqueio";
+"Focus mode changes" = "Mudanças de Foco";
+"Reading Focus status." = "Lendo o estado do Foco.";
+"Needs Full Disk Access to read Focus status." = "Precisa de Acesso Total ao Disco para ler o Foco.";
+"Open Settings" = "Abrir Ajustes";
+"Other" = "Outros";
+"Shelf (drop files on the notch)" = "Shelf (solte arquivos no notch)";
+"Camera and microphone indicator" = "Indicador de câmera e microfone";
+"Replace system volume/brightness HUD" = "Substituir HUD de volume/brilho do sistema";
+"Requires Accessibility permission." = "Requer permissão de Acessibilidade.";

@@ -83,7 +83,7 @@ struct HomeView: View {
         }
     }
 
-    private func hint(_ icon: String, _ text: String) -> some View {
+    private func hint(_ icon: String, _ text: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 7) {
             Image(systemName: icon).foregroundStyle(.white.opacity(0.4))
             Text(text).foregroundStyle(.white.opacity(0.5)).fixedSize(horizontal: false, vertical: true)
@@ -91,7 +91,7 @@ struct HomeView: View {
         .font(.system(size: 12))
     }
 
-    private func shortcut(_ icon: String, _ title: String, action: @escaping () -> Void) -> some View {
+    private func shortcut(_ icon: String, _ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 5) {
                 Image(systemName: icon).font(.system(size: 11, weight: .semibold))

@@ -33,7 +33,7 @@ enum DebugHooks {
             case "screenshot":
                 viewModel.show(IslandAlert(icon: "camera.viewfinder", iconColor: .white, text: "",
                                            image: NSApp.applicationIconImage), for: 3)
-            case "offline": viewModel.show(IslandAlert(icon: "wifi.slash", iconColor: .red, text: "Offline", textColor: .red))
+            case "offline": viewModel.show(IslandAlert(icon: "wifi.slash", iconColor: .red, text: String(localized: "Offline"), textColor: .red))
             case "download": downloads.active = .init(name: "Cove-Design.zip", fraction: 0.62)
             case "noDownload": downloads.active = nil
             case "expand": viewModel.pinned = true; viewModel.state = .expanded

@@ -127,17 +127,17 @@ final class ShelfModule: NotchModule {
         switch outcome {
         case .success(.file(let url)):
             append(.stored(url))
-            onFeedback?("checkmark.circle.fill", "Done")
+            onFeedback?("checkmark.circle.fill", String(localized: "Done"))
         case .success(.text(let text)):
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
             addText(text)
-            onFeedback?("doc.on.clipboard", "Copied")
+            onFeedback?("doc.on.clipboard", String(localized: "Copied"))
         case .success(.nothing):
-            onFeedback?("text.viewfinder", "None")
+            onFeedback?("text.viewfinder", String(localized: "None"))
         case .failure(let error):
             Log.app.error("Shelf action failed: \(error.localizedDescription)")
-            onFeedback?("exclamationmark.triangle.fill", "Failed")
+            onFeedback?("exclamationmark.triangle.fill", String(localized: "Failed"))
         }
     }
 
@@ -148,7 +148,7 @@ final class ShelfModule: NotchModule {
         case .text(let text): payload = text
         }
         guard let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: [payload]) else {
-            onFeedback?("exclamationmark.triangle.fill", "Failed")
+            onFeedback?("exclamationmark.triangle.fill", String(localized: "Failed"))
             return
         }
         service.perform(withItems: [payload])

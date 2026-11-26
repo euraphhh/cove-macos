@@ -54,7 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         media.start()
         privacy.start()
         downloads.onFinish = { [viewModel] _ in
-            viewModel.show(IslandAlert(icon: "checkmark.circle.fill", iconColor: .blue, text: "Done", textColor: .blue))
+            viewModel.show(IslandAlert(icon: "checkmark.circle.fill", iconColor: .blue, text: String(localized: "Done"), textColor: .blue))
         }
         downloads.start()
         focus = FocusMonitor(viewModel: viewModel)
@@ -66,11 +66,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         network = NetworkMonitor(viewModel: viewModel)
         network?.start()
         calendar.onStart = { [viewModel] meeting in
-            viewModel.show(IslandAlert(icon: "calendar", iconColor: meeting.color, text: "Now", textColor: meeting.color), for: 4)
+            viewModel.show(IslandAlert(icon: "calendar", iconColor: meeting.color, text: String(localized: "Now"), textColor: meeting.color), for: 4)
         }
         calendar.start()
         timer.onFinish = { [viewModel] in
-            viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: "Done", textColor: .orange), for: 4)
+            viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: String(localized: "Done"), textColor: .orange), for: 4)
         }
         _ = Updater.shared
         let onboarding = OnboardingController(calendar: calendar)

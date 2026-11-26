@@ -43,9 +43,9 @@ final class FocusMonitor {
         guard primed, mode != current else { return }   // don't alert for the state found at launch
 
         if let mode, let info = Self.modeInfo(mode) {
-            viewModel.show(IslandAlert(icon: info.symbol, iconColor: info.color, text: "On", textColor: info.color))
+            viewModel.show(IslandAlert(icon: info.symbol, iconColor: info.color, text: String(localized: "On"), textColor: info.color))
         } else if mode == nil, let old = current, let info = Self.modeInfo(old) {
-            viewModel.show(IslandAlert(icon: info.symbol, iconColor: .gray, text: "Off", textColor: .gray))
+            viewModel.show(IslandAlert(icon: info.symbol, iconColor: .gray, text: String(localized: "Off"), textColor: .gray))
         }
     }
 

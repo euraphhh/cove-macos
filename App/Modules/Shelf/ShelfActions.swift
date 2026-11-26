@@ -11,11 +11,11 @@ enum ShelfAction: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .copyText: "Copy Text (OCR)"
-        case .convertPNG: "Convert to PNG"
-        case .convertJPEG: "Convert to JPEG"
-        case .compress: "Compress to Zip"
-        case .airDrop: "AirDrop…"
+        case .copyText: String(localized: "Copy Text (OCR)")
+        case .convertPNG: String(localized: "Convert to PNG")
+        case .convertJPEG: String(localized: "Convert to JPEG")
+        case .compress: String(localized: "Compress to Zip")
+        case .airDrop: String(localized: "AirDrop…")
         }
     }
 

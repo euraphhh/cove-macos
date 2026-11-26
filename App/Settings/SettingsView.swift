@@ -81,7 +81,7 @@ struct SettingsView: View {
         .frame(width: 440, height: 680)
     }
 
-    private func note(_ text: String) -> some View {
+    private func note(_ text: LocalizedStringKey) -> some View {
         Text(text).font(.footnote).foregroundStyle(.secondary)
     }
 }

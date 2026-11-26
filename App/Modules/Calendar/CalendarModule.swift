@@ -72,7 +72,7 @@ final class CalendarModule: NotchModule {
             .filter { $0.startDate.addingTimeInterval(Self.graceAfterStart) > now }
             .sorted { $0.startDate < $1.startDate }
         let meetings = events.map {
-            Meeting(id: $0.eventIdentifier ?? UUID().uuidString, title: $0.title ?? "Meeting",
+            Meeting(id: $0.eventIdentifier ?? UUID().uuidString, title: $0.title ?? String(localized: "Meeting"),
                     start: $0.startDate, end: $0.endDate,
                     color: Color(nsColor: $0.calendar?.color ?? .systemBlue),
                     joinURL: Self.joinURL(in: $0))

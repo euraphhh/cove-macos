@@ -31,8 +31,8 @@ final class NetworkMonitor {
         let work = DispatchWorkItem { [weak self] in
             guard let self, self.online == isOnline, Prefs.on(Prefs.network) else { return }
             let alert = isOnline
-                ? IslandAlert(icon: wifi ? "wifi" : "network", iconColor: .white, text: "Online", textColor: .green)
-                : IslandAlert(icon: "wifi.slash", iconColor: .red, text: "Offline", textColor: .red)
+                ? IslandAlert(icon: wifi ? "wifi" : "network", iconColor: .white, text: String(localized: "Online"), textColor: .green)
+                : IslandAlert(icon: "wifi.slash", iconColor: .red, text: String(localized: "Offline"), textColor: .red)
             self.viewModel.show(alert)
         }
         pending = work
