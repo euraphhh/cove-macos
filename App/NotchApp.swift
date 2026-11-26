@@ -77,6 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         swipe = SwipeHandler(panel: panel, viewModel: viewModel, media: media)
         media.start()
         privacy.start()
+        WeatherModule.shared.start()
         downloads.onFinish = { [viewModel] _ in
             viewModel.show(IslandAlert(icon: "checkmark.circle.fill", iconColor: .blue, text: String(localized: "Done"), textColor: .blue))
         }

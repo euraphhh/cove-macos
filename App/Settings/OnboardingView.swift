@@ -9,6 +9,7 @@ struct OnboardingView: View {
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @State private var meetings: Bool
     @State private var replaceHUD = MediaKeyInterceptor.shared.isEnabled
+    @State private var weather = Prefs.on(Prefs.weather)
 
     init(calendar: CalendarModule, onDone: @escaping () -> Void) {
         self.calendar = calendar
@@ -28,10 +29,11 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 tip("cursorarrow.rays", "Hover the notch to peek, click to expand.")
-                tip("music.note", "Play music in Spotify or Apple Music to see it live.")
-                tip("hand.draw", "Swipe two fingers on the island to skip tracks.")
-                tip("tray.and.arrow.down", "Drag files onto the notch to hold them for later.")
-                tip("capsule.fill", "Timer, settings and more live in the menu bar icon.")
+                tip("keyboard", "Press ⌃⌥Space to open the island from anywhere.")
+                tip("music.note", "Play music in Spotify or Apple Music. Swipe two fingers on the island to skip.")
+                tip("clock", "Click it with nothing playing for the time, today's events and shortcuts.")
+                tip("tray.and.arrow.down", "Drop files, links or text on the notch. Right-click them for OCR, zip and AirDrop.")
+                tip("capsule.fill", "Timer, settings and feedback live in the menu bar icon.")
             }
 
             Divider()
@@ -46,10 +48,14 @@ struct OnboardingView: View {
                        isOn: $meetings) { calendar.setEnabled($0) }
                 option("Volume & brightness HUD", detail: "Replace the macOS volume/brightness overlay. Asks for Accessibility.",
                        isOn: $replaceHUD) { MediaKeyInterceptor.shared.setEnabled($0) }
+                option("Weather", detail: "Local forecast in the island. Asks for your location.", isOn: $weather) {
+                    UserDefaults.standard.set($0, forKey: Prefs.weather)
+                    WeatherModule.shared.refresh()
+                }
             }
 
             HStack {
-                Text("Music access is requested the first time a song plays.")
+                Text("Music access is requested the first time a song plays. Everything can be changed later in Settings.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Spacer()
                 Button("Let's start!", action: onDone)

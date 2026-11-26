@@ -33,6 +33,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>SUEnableAutomaticChecks</key><true/>
   <key>NSBluetoothAlwaysUsageDescription</key><string>Cove shows an alert with battery level when your headphones connect.</string>
   <key>NSCalendarsFullAccessUsageDescription</key><string>Cove shows your next meeting in the notch.</string>
+  <key>NSLocationUsageDescription</key><string>Cove shows the local weather in the island.</string>
+  <key>NSLocationWhenInUseUsageDescription</key><string>Cove shows the local weather in the island.</string>
   <key>NSAppleEventsUsageDescription</key><string>Cove shows and controls what is playing in Spotify and Music.</string>
 </dict></plist>
 PLIST

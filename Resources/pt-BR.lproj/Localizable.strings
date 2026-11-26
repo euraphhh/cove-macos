@@ -108,3 +108,18 @@
 "Resume timer" = "Retomar timer";
 "Pause timer" = "Pausar timer";
 "Keyboard shortcut" = "Atalho de teclado";
+
+/* Weather */
+"Weather" = "Clima";
+"Show weather in the island" = "Mostrar o clima na ilha";
+"City (empty = use my location)" = "Cidade (vazio = usar minha localização)";
+"Forecast from Open-Meteo. Your location is rounded to about 1 km." = "Previsão do Open-Meteo. Sua localização é arredondada para cerca de 1 km.";
+"Local forecast in the island. Asks for your location." = "Previsão local na ilha. Pede sua localização.";
+
+/* Welcome (updated) */
+"Press ⌃⌥Space to open the island from anywhere." = "Pressione ⌃⌥Espaço para abrir a ilha de qualquer lugar.";
+"Play music in Spotify or Apple Music. Swipe two fingers on the island to skip." = "Toque música no Spotify ou no Apple Music. Deslize dois dedos na ilha para trocar de faixa.";
+"Click it with nothing playing for the time, today's events and shortcuts." = "Clique nela sem nada tocando para ver a hora, os eventos de hoje e atalhos.";
+"Drop files, links or text on the notch. Right-click them for OCR, zip and AirDrop." = "Solte arquivos, links ou texto no notch. Clique com o botão direito para OCR, zip e AirDrop.";
+"Timer, settings and feedback live in the menu bar icon." = "Timer, ajustes e feedback ficam no ícone da barra de menus.";
+"Music access is requested the first time a song plays. Everything can be changed later in Settings." = "O acesso à música é pedido na primeira vez que uma música tocar. Tudo pode ser mudado depois nos Ajustes.";

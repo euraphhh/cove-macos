@@ -27,6 +27,14 @@ enum DebugHooks {
             case "camera", "mic": privacy.debugOverride = note.object as? String
             case "noPrivacy": privacy.debugOverride = nil
             case "unlock": unlock?.play()
+            case "weather":
+                UserDefaults.standard.set(true, forKey: Prefs.weather)
+                UserDefaults.standard.set("São Paulo", forKey: Prefs.weatherCity)
+                WeatherModule.shared.refresh()
+            case "noWeather":
+                UserDefaults.standard.set(false, forKey: Prefs.weather)
+                UserDefaults.standard.set("", forKey: Prefs.weatherCity)
+                WeatherModule.shared.refresh()
             case "musicOff": UserDefaults.standard.set(false, forKey: Prefs.music)
             case "musicOn": UserDefaults.standard.set(true, forKey: Prefs.music)
             case "lowPower": power?.showLowPowerMode(true)

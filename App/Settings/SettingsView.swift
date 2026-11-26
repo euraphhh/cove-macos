@@ -20,6 +20,8 @@ struct SettingsView: View {
     @AppStorage(Prefs.lowPower) private var lowPower = true
     @AppStorage(Prefs.display) private var display = ""
     @AppStorage(Prefs.hotKey) private var hotKey = "ctrlOpt"
+    @AppStorage(Prefs.weather) private var weather = false
+    @AppStorage(Prefs.weatherCity) private var weatherCity = ""
 
     var body: some View {
         Form {
@@ -70,6 +72,16 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Weather") {
+                Toggle("Show weather in the island", isOn: $weather)
+                    .onChange(of: weather) { WeatherModule.shared.refresh() }
+                if weather {
+                    TextField("City (empty = use my location)", text: $weatherCity)
+                        .onSubmit { WeatherModule.shared.refresh() }
+                    note("Forecast from Open-Meteo. Your location is rounded to about 1 km.")
+                }
+            }
+
             Section("Other") {
                 Toggle("Shelf (drop files on the notch)", isOn: $shelf)
                 Toggle("Camera and microphone indicator", isOn: $privacy)
@@ -82,7 +94,7 @@ struct SettingsView: View {
                 .font(.footnote).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
-        .frame(width: 440, height: 680)
+        .frame(width: 440, height: 720)
     }
 
     private func note(_ text: LocalizedStringKey) -> some View {

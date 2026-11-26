@@ -15,11 +15,12 @@
 - **Alerts**: charger, low battery, Low Power Mode, AirPods with battery, unlock, online/offline, Focus, screenshots.
 - **HUD**: optional replacement for the macOS volume/brightness overlay.
 - **Shelf**: drop files, images, links or text on the notch to hold them, drag them back out later. Right-click an item to copy text from an image (OCR), convert to PNG/JPEG, zip it or AirDrop it.
-- **Gestures**: swipe two fingers on the island to skip tracks; press to expand.
+- **Home view**: click the island with nothing playing for the time, today's events, batteries, weather and shortcuts.
+- **Gestures and shortcut**: swipe two fingers on the island to skip tracks; press to expand; ⌃⌥Space opens it from anywhere.
 - **Camera/mic indicator**: green or orange dot while an app is using them.
 - Works on Macs without a notch too: the island becomes a pill in the menu bar.
 
-Every feature can be turned off in Settings.
+Every feature can be turned off in Settings. Available in English and Portuguese (Brazil), and it respects Reduce Motion.
 
 ## Install
 ```bash
@@ -47,6 +48,7 @@ Cove only asks when you turn a feature on:
 | Volume/brightness HUD | Accessibility |
 | Downloads | Downloads folder |
 | Focus | Full Disk Access |
+| Weather (optional) | Location, or type a city instead |
 
 ## Build from source
 ```bash

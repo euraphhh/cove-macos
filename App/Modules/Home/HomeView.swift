@@ -5,6 +5,7 @@ import SwiftUI
 struct HomeView: View {
     let calendar: CalendarModule
     let timer: TimerModule
+    private let weather = WeatherModule.shared
     @State private var mac: (onAC: Bool, percent: Int)? = PowerMonitor.read()
     @State private var headphones: Int?
 
@@ -13,7 +14,7 @@ struct HomeView: View {
             HStack(alignment: .top, spacing: 18) {
                 clock.frame(width: 130, alignment: .leading)
                 events.frame(maxWidth: .infinity, alignment: .leading)
-                batteries.frame(width: 70, alignment: .trailing)
+                batteries.frame(width: 90, alignment: .trailing)
             }
             HStack(spacing: 8) {
                 shortcut("timer", "5 min") { timer.start(minutes: 5) }
@@ -27,6 +28,7 @@ struct HomeView: View {
         .foregroundStyle(.white)
         .onAppear {
             mac = PowerMonitor.read()
+            weather.refreshIfNeeded()
             DispatchQueue.global(qos: .userInitiated).async {
                 let level = BluetoothBattery.level(forDeviceNamed: "")
                 DispatchQueue.main.async { headphones = level }
@@ -66,6 +68,13 @@ struct HomeView: View {
 
     private var batteries: some View {
         VStack(alignment: .trailing, spacing: 6) {
+            if let w = weather.current {
+                HStack(spacing: 5) {
+                    Image(systemName: w.symbol).symbolRenderingMode(.multicolor).font(.system(size: 14))
+                    Text("\(w.temperature)°").font(.system(size: 15, weight: .semibold).monospacedDigit())
+                }
+                Text("↑\(w.high)° ↓\(w.low)°").font(.system(size: 11).monospacedDigit()).foregroundStyle(.white.opacity(0.55))
+            }
             if let mac {
                 batteryRow(icon: mac.onAC ? "bolt.fill" : "laptopcomputer", percent: mac.percent)
             }
