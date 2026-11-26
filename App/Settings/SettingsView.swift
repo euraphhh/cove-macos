@@ -19,6 +19,7 @@ struct SettingsView: View {
     @AppStorage(Prefs.network) private var network = true
     @AppStorage(Prefs.lowPower) private var lowPower = true
     @AppStorage(Prefs.display) private var display = ""
+    @AppStorage(Prefs.hotKey) private var hotKey = "ctrlOpt"
 
     var body: some View {
         Form {
@@ -34,6 +35,9 @@ struct SettingsView: View {
                     ForEach(NSScreen.screens.map(\.localizedName), id: \.self) { Text($0).tag($0) }
                 }
                 .onChange(of: display) { NotificationCenter.default.post(name: Prefs.displayChanged, object: nil) }
+                Picker("Keyboard shortcut", selection: $hotKey) {
+                    ForEach(HotKey.Preset.allCases, id: \.rawValue) { Text($0.label).tag($0.rawValue) }
+                }
                 Toggle("Automatically check for updates", isOn: $autoUpdate)
                     .onChange(of: autoUpdate) { _, value in Updater.shared.automaticallyChecks = value }
             }

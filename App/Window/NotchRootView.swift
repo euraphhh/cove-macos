@@ -72,6 +72,8 @@ extension AnyTransition {
 }
 
 struct NotchRootView: View {
+    /// macOS "Reduce motion": swap springs, blur and scale for short fades.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let viewModel: NotchViewModel
     let media: MediaModule
     let shelf: ShelfModule
@@ -124,11 +126,11 @@ struct NotchRootView: View {
                 NotchShape(radius: radius, ear: ear, topRadius: notch ? 0 : radius).fill(.black)
                 Group {
                     if expanded {
-                        expandedContent.transition(.island)
+                        expandedContent.transition(islandTransition)
                     } else if let alert = viewModel.alert {
-                        alertContent(alert).transition(.island)
+                        alertContent(alert).transition(islandTransition)
                     } else if viewModel.hasLiveActivity {
-                        compactContent.transition(.island)
+                        compactContent.transition(islandTransition)
                     }
                 }
                 .padding(.horizontal, ear)
@@ -144,7 +146,7 @@ struct NotchRootView: View {
                 if let secondary = viewModel.secondary, !expanded {
                     bubble(for: secondary)
                         .offset(x: viewModel.bubbleSize + NotchViewModel.bubbleGap)
-                        .transition(.bubble)
+                        .transition(reduceMotion ? .opacity : .bubble)
                 }
             }
             .overlay(alignment: .trailing) {
@@ -175,14 +177,20 @@ struct NotchRootView: View {
         .onChange(of: viewModel.state) { _, state in
             if state == .closed { viewModel.focused = nil }
         }
-        .animation(expanded ? Self.openSpring : Self.closeSpring, value: viewModel.state)
-        .animation(Self.spring, value: viewModel.alert)
-        .animation(Self.spring, value: viewModel.hasLiveActivity)
-        .animation(Self.spring, value: viewModel.secondary)
+        .animation(motion(expanded ? Self.openSpring : Self.closeSpring), value: viewModel.state)
+        .animation(motion(Self.spring), value: viewModel.alert)
+        .animation(motion(Self.spring), value: viewModel.hasLiveActivity)
+        .animation(motion(Self.spring), value: viewModel.secondary)
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: privacyColor)
-        .animation(Self.spring, value: viewModel.expandedSize)
-        .animation(.spring(response: 0.22, dampingFraction: 0.6), value: viewModel.isPressed)
-        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: viewModel.nudgeOffset)
+        .animation(motion(Self.spring), value: viewModel.expandedSize)
+        .animation(motion(.spring(response: 0.22, dampingFraction: 0.6)), value: viewModel.isPressed)
+        .animation(motion(.spring(response: 0.3, dampingFraction: 0.5)), value: viewModel.nudgeOffset)
+    }
+
+    private var islandTransition: AnyTransition { reduceMotion ? .opacity : .island }
+
+    private func motion(_ animation: Animation) -> Animation {
+        reduceMotion ? .easeInOut(duration: 0.18) : animation
     }
 
     /// Squish while pressed, expand on release (like pressing the iPhone island).
@@ -223,7 +231,7 @@ struct NotchRootView: View {
             }
             .frame(maxWidth: .infinity)
             if showShelf {
-                shelf.expandedView.frame(width: 180).transition(.island)
+                shelf.expandedView.frame(width: 180).transition(islandTransition)
             }
         }
         .padding(.horizontal, 26)

@@ -99,3 +99,12 @@
 "Camera and microphone indicator" = "Indicador de câmera e microfone";
 "Replace system volume/brightness HUD" = "Substituir HUD de volume/brilho do sistema";
 "Requires Accessibility permission." = "Requer permissão de Acessibilidade.";
+
+/* Accessibility */
+"Previous track" = "Faixa anterior";
+"Next track" = "Próxima faixa";
+"Pause" = "Pausar";
+"Play" = "Tocar";
+"Resume timer" = "Retomar timer";
+"Pause timer" = "Pausar timer";
+"Keyboard shortcut" = "Atalho de teclado";

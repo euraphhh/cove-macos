@@ -118,7 +118,9 @@ struct TimerExpandedView: View {
             circleButton(timer.isPaused ? "play.fill" : "pause.fill", bg: .orange.opacity(0.3), fg: .orange) {
                 timer.togglePause()
             }
+            .accessibilityLabel(timer.isPaused ? Text("Resume timer") : Text("Pause timer"))
             circleButton("xmark", bg: .white.opacity(0.15), fg: .white) { timer.cancel() }
+                .accessibilityLabel(Text("Cancel Timer"))
             Spacer()
             VStack(alignment: .trailing, spacing: 0) {
                 Text("Timer").font(.caption).foregroundStyle(.orange)

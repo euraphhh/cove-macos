@@ -103,6 +103,16 @@ struct TransportButton: View {
                 .contentTransition(.symbolEffect(.replace))
         }
         .buttonStyle(CircleHighlightStyle(diameter: size * 1.9, layout: CGSize(width: size + 20, height: size + 12)))
+        .accessibilityLabel(Self.label(for: icon))
+    }
+
+    private static func label(for icon: String) -> Text {
+        switch icon {
+        case "backward.fill": Text("Previous track")
+        case "forward.fill": Text("Next track")
+        case "pause.fill": Text("Pause")
+        default: Text("Play")
+        }
     }
 }
 
@@ -157,6 +167,7 @@ struct RouteButton: View {
                 .foregroundStyle(current?.transport == kAudioDeviceTransportTypeBuiltIn ? .white.opacity(0.7) : .blue)
         }
         .buttonStyle(CircleHighlightStyle(diameter: 34))
+        .accessibilityLabel(Text("Audio Output"))
     }
 }
 

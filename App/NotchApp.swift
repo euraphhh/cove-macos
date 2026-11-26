@@ -30,6 +30,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var network: NetworkMonitor?
     private var menuBar: MenuBarController?
     private var onboarding: OnboardingController?
+    private var appliedHotKey: HotKey.Preset = .controlOption
+    private var keyboardCloseWork: DispatchWorkItem?
+
+    private func toggleFromKeyboard() {
+        keyboardCloseWork?.cancel()
+        if viewModel.state == .expanded {
+            viewModel.openedByKeyboard = false
+            viewModel.state = .closed
+            panel?.ignoresMouseEvents = true
+            return
+        }
+        viewModel.openedByKeyboard = true
+        viewModel.state = .expanded
+        panel?.ignoresMouseEvents = false
+        // Close on its own if the cursor never comes over.
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.viewModel.openedByKeyboard else { return }
+            self.viewModel.openedByKeyboard = false
+            self.viewModel.state = .closed
+            self.panel?.ignoresMouseEvents = true
+        }
+        keyboardCloseWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8, execute: work)
+    }
     private var power: PowerMonitor?
     private var bluetooth: BluetoothMonitor?
     private var volume: VolumeMonitor?
@@ -73,6 +97,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             viewModel.show(IslandAlert(icon: "timer", iconColor: .orange, text: String(localized: "Done"), textColor: .orange), for: 4)
         }
         _ = Updater.shared
+        HotKey.shared.onPress = { [weak self] in self?.toggleFromKeyboard() }
+        HotKey.shared.apply(HotKey.Preset(rawValue: UserDefaults.standard.string(forKey: Prefs.hotKey) ?? "") ?? .controlOption)
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { _ in
+            let preset = HotKey.Preset(rawValue: UserDefaults.standard.string(forKey: Prefs.hotKey) ?? "") ?? .controlOption
+            if preset != self.appliedHotKey { self.appliedHotKey = preset; HotKey.shared.apply(preset) }
+        }
         let onboarding = OnboardingController(calendar: calendar)
         self.onboarding = onboarding
         menuBar = MenuBarController(timer: timer, calendar: calendar, onboarding: onboarding)

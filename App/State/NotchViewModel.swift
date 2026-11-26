@@ -30,6 +30,9 @@ final class NotchViewModel {
     static let bubbleGap: CGFloat = 6
     var bubbleSize: CGFloat { notchSize.height }
 
+    /// Opened from the keyboard shortcut: stays open until the cursor visits it or a timeout.
+    var openedByKeyboard = false
+
     /// Debug only: keep the current state regardless of the cursor.
     var pinned = false
     var notchSize: CGSize = CGSize(width: 200, height: 32)

@@ -66,6 +66,10 @@ final class HoverTracker {
                             width: notch.width + pad * 2 + bubble, height: notch.height + pad / 2)
         }
         let inside = active.contains(p)
+        // Opened with the shortcut: ignore the cursor until it actually enters the island.
+        if viewModel.openedByKeyboard {
+            if inside { viewModel.openedByKeyboard = false } else { return }
+        }
         // Keep open while a button is held after leaving (dragging a file out of the shelf).
         let holding = NSEvent.pressedMouseButtons != 0 && viewModel.state == .expanded
         if holding && !inside { return }

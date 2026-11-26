@@ -16,6 +16,9 @@ enum Prefs {
     static let lowPower = "module.lowPower"
     /// "" = automatic (notch screen, else main), "main" = main display, otherwise a screen's localizedName.
     static let display = "display"
+    static let hotKey = "hotKey"
+    static let weather = "module.weather"
+    static let weatherCity = "weatherCity"
 
     static let displayChanged = Notification.Name("CoveDisplayChanged")
 
@@ -25,7 +28,7 @@ enum Prefs {
             unlock: true, screenshots: true, network: true, lowPower: true,
             // These touch protected locations (Downloads folder, Focus database): opt-in.
             downloads: false, focus: false,
-            display: "",
+            display: "", hotKey: "ctrlOpt", weather: false, weatherCity: "",
         ])
     }
 
