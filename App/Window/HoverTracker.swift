@@ -6,6 +6,9 @@ final class HoverTracker {
     private let viewModel: NotchViewModel
     private var monitors: [Any] = []
     private var dragTimer: Timer?
+    /// A context menu (e.g. Shelf item actions) is open: its items usually extend past the island,
+    /// so moving onto them must not collapse it.
+    private var menuOpen = false
 
     init(panel: NotchPanel, viewModel: NotchViewModel) {
         self.panel = panel
@@ -17,6 +20,15 @@ final class HoverTracker {
         let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .leftMouseDown]
         if let g = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler) { monitors.append(g) }
         if let l = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { e in handler(e); return e }) { monitors.append(l) }
+
+        let center = NotificationCenter.default
+        center.addObserver(forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.menuOpen = true
+        }
+        center.addObserver(forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.menuOpen = false
+            self?.update()   // re-evaluate where the cursor ended up
+        }
     }
 
     /// Drag sessions from other apps don't reliably deliver mouse events to monitors, so poll the
@@ -36,6 +48,7 @@ final class HoverTracker {
 
     private func update() {
         guard let panel, !viewModel.pinned else { return }
+        if menuOpen && viewModel.state == .expanded { return }
         let p = NSEvent.mouseLocation
         let frame = panel.frame
         let notch = viewModel.closedSize
