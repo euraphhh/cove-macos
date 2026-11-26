@@ -2,7 +2,8 @@ import AppKit
 
 struct NotchGeometry {
     /// Panel size: big enough for the largest expanded layout plus the top "ears".
-    static let expandedSize = CGSize(width: 680, height: 240)
+    /// Widest layout is home (500) + Shelf (200) + ears (2 × 14) = 728; leave margin.
+    static let expandedSize = CGSize(width: 780, height: 240)
 
     /// Debug: `defaults write com.euraphhh.cove simulateNoNotch -bool true` to preview the pill layout.
     static var simulateNoNotch: Bool { UserDefaults.standard.bool(forKey: "simulateNoNotch") }

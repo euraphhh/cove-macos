@@ -36,6 +36,12 @@ enum DebugHooks {
                 UserDefaults.standard.set("", forKey: Prefs.weatherCity)
                 WeatherModule.shared.refresh()
             case "align": viewModel.showAlignmentGuide.toggle()
+            case "dumpFrame":
+                let frames = NSApp.windows.filter { $0 is NotchPanel }.map { NSStringFromRect($0.frame) }
+                let line = "\(frames) offset=\(viewModel.centerOffset) state=\(viewModel.state)\n"
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent("cove-frame.txt")
+                if let h = try? FileHandle(forWritingTo: url) { h.seekToEndOfFile(); h.write(Data(line.utf8)); try? h.close() }
+                else { try? line.write(to: url, atomically: true, encoding: .utf8) }
             case "musicOff": UserDefaults.standard.set(false, forKey: Prefs.music)
             case "musicOn": UserDefaults.standard.set(true, forKey: Prefs.music)
             case "lowPower": power?.showLowPowerMode(true)

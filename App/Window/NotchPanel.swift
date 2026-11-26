@@ -26,7 +26,13 @@ final class NotchPanel: NSPanel {
 
         let host = FirstMouseHostingView(rootView: NotchRootView(viewModel: viewModel, media: media, shelf: shelf, timer: timer, calendar: calendar, privacy: privacy, registry: registry))
         host.layer?.backgroundColor = .clear
+        // The hosting view must never resize the window to fit its content: the panel keeps its
+        // origin, so a wider window shifts the island off the notch.
+        host.sizingOptions = []
         contentView = host
+        NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: self, queue: .main) { [weak self] _ in
+            self?.snapBack()
+        }
     }
 
     override var canBecomeKey: Bool { false }
@@ -38,6 +44,13 @@ final class NotchPanel: NSPanel {
         viewModel.hasNotch = NotchGeometry.hasNotch(screen)
         setFrame(NotchGeometry.panelFrame(on: screen), display: true)
         alignToNotch(on: screen)
+    }
+
+    /// Anything that resizes or moves the panel puts it back on the notch.
+    private func snapBack() {
+        guard let screen = NotchGeometry.targetScreen else { return }
+        let target = NotchGeometry.panelFrame(on: screen)
+        if abs(frame.width - target.width) > 0.5 || abs(frame.midX - target.midX) > 1 { reposition() }
     }
 
     /// Window origins snap to whole points, but the notch center can sit on a half point
